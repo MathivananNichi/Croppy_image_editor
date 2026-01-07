@@ -34,12 +34,12 @@ Future<CropImageResult?> showAdaptiveImageCropper(
         imageProvider: imageProvider,
         initialData: initialData,
         postProcessFn: postProcessFn,
-        cropPathFn: cropPathFn,
+
         allowedAspectRatios: allowedAspectRatios,
         enabledTransformations: enabledTransformations,
         heroTag: heroTag,
         shouldPopAfterCrop: shouldPopAfterCrop,
-        locale: locale,
+
         themeData: cupertinoThemeData,
         showLoadingIndicatorOnSubmit: showLoadingIndicatorOnSubmit,
         showGestureHandlesOn: showGestureHandlesOn,

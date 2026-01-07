@@ -19,4 +19,23 @@ mixin MirrorTransformation on BaseCroppableImageController {
       baseTransformations: newBaseTransformations,
     ));
   }
+
+  void onMirrorVertical() {
+    final newBaseTransformations = data.baseTransformations.copyWith(
+      scaleY: data.baseTransformations.scaleY * -1,
+    );
+
+    final transformation = getMatrixForBaseTransformations(
+      newBaseTransformations,
+    );
+
+    final cropRect = data.cropRect.transform(transformation);
+
+    onBaseTransformation(
+      data.copyWith(
+        cropRect: cropRect,
+        baseTransformations: newBaseTransformations,
+      ),
+    );
+  }
 }

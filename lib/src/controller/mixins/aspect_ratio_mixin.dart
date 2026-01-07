@@ -194,6 +194,7 @@ mixin AspectRatioMixin on CroppableImageController {
   /// The aspect ratio notifier.
   final aspectRatioNotifier = ValueNotifier<CropAspectRatio?>(null);
 
+
   /// Sets the aspect ratio to the first allowed aspect ratio if the current
   /// aspect ratio is not allowed.
   void maybeSetAspectRatioOnInit() {

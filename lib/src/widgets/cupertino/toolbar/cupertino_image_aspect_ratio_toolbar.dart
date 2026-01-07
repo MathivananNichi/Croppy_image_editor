@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:croppy/src/src.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -10,7 +12,8 @@ class CupertinoImageAspectRatioToolbar extends StatelessWidget {
   final AspectRatioMixin controller;
 
   CropAspectRatio? get _aspectRatio => controller.currentAspectRatio;
-  bool get _isHorizontal => _aspectRatio != null && _aspectRatio!.isHorizontal;
+
+  // bool get _isHorizontal => _aspectRatio != null && _aspectRatio!.isHorizontal;
 
   String _convertAspectRatioToString(
     BuildContext context,
@@ -43,7 +46,6 @@ class CupertinoImageAspectRatioToolbar extends StatelessWidget {
     final aspectRatios = controller.allowedAspectRatios;
 
     final displayedAspectRatios = <CropAspectRatio?>[];
-    final aspectRatioPairs = <(CropAspectRatio, CropAspectRatio)>[];
 
     for (final aspectRatio in aspectRatios) {
       if (aspectRatio == null) {
@@ -62,28 +64,23 @@ class CupertinoImageAspectRatioToolbar extends StatelessWidget {
         displayedAspectRatios.add(aspectRatio);
         continue;
       }
-
-      final pair = aspectRatio.isHorizontal
-          ? (aspectRatio, complement)
-          : (complement, aspectRatio);
-
-      if (!aspectRatioPairs.contains(pair)) {
-        aspectRatioPairs.add(pair);
-      }
     }
 
-    for (final pair in aspectRatioPairs) {
+    for (final pair in aspectRatios) {
       displayedAspectRatios.add(
-        _isHorizontal ? pair.$1 : pair.$2,
+        pair,
       );
     }
 
     return displayedAspectRatios
+        .toSet()
+        .toList()
         .map(
           (aspectRatio) => _AspectRatioChipWidget(
             aspectRatio: _convertAspectRatioToString(context, aspectRatio),
             isSelected: aspectRatio == _aspectRatio,
             onTap: () {
+              log("dddddddd  ${aspectRatio}");
               controller.currentAspectRatio = aspectRatio;
             },
           ),
@@ -91,37 +88,34 @@ class CupertinoImageAspectRatioToolbar extends StatelessWidget {
         .toList();
   }
 
-  List<Widget> _buildOrientationWidgets(BuildContext context) {
-    final aspectRatios = controller.allowedAspectRatios;
-
-    final complement = _aspectRatio?.complement;
-    final hasComplement = complement != null &&
-        _aspectRatio != complement &&
-        aspectRatios.contains(complement);
-
-    return [
-      _CupertinoOrientationWidget(
-        isVertical: true,
-        isSelected: hasComplement && !_isHorizontal,
-        onTap: () {
-          if (!hasComplement) return;
-
-          controller.currentAspectRatio =
-              _isHorizontal ? complement : _aspectRatio;
-        },
-      ),
-      _CupertinoOrientationWidget(
-        isVertical: false,
-        isSelected: hasComplement && _isHorizontal,
-        onTap: () {
-          if (!hasComplement) return;
-
-          controller.currentAspectRatio =
-              _isHorizontal ? _aspectRatio : complement;
-        },
-      ),
-    ];
-  }
+  // List<Widget> _buildOrientationWidgets(BuildContext context) {
+  //   final aspectRatios = controller.allowedAspectRatios;
+  //
+  //   final complement = _aspectRatio?.complement;
+  //   final hasComplement =
+  //       complement != null && _aspectRatio != complement && aspectRatios.contains(complement);
+  //
+  //   return [
+  //     _CupertinoOrientationWidget(
+  //       isVertical: true,
+  //       isSelected: hasComplement && !_isHorizontal,
+  //       onTap: () {
+  //         if (!hasComplement) return;
+  //
+  //         controller.currentAspectRatio = _isHorizontal ? complement : _aspectRatio;
+  //       },
+  //     ),
+  //     _CupertinoOrientationWidget(
+  //       isVertical: false,
+  //       isSelected: hasComplement && _isHorizontal,
+  //       onTap: () {
+  //         if (!hasComplement) return;
+  //
+  //         controller.currentAspectRatio = _isHorizontal ? _aspectRatio : complement;
+  //       },
+  //     ),
+  //   ];
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -129,10 +123,6 @@ class CupertinoImageAspectRatioToolbar extends StatelessWidget {
       valueListenable: controller.aspectRatioNotifier,
       builder: (context, _, __) => Column(
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: _buildOrientationWidgets(context),
-          ),
           const SizedBox(height: 16.0),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -176,9 +166,7 @@ class _CupertinoOrientationWidget extends StatelessWidget {
               border: Border.all(
                 color: CupertinoColors.systemGrey,
               ),
-              color: isSelected
-                  ? CupertinoColors.systemGrey
-                  : CupertinoColors.darkBackgroundGray,
+              color: isSelected ? CupertinoColors.systemGrey : CupertinoColors.darkBackgroundGray,
             ),
             child: isSelected
                 ? const Icon(
@@ -217,8 +205,7 @@ class _AspectRatioChipWidget extends StatelessWidget {
       child: Container(
         height: 24.0,
         decoration: BoxDecoration(
-          color:
-              isSelected ? CupertinoColors.white.withOpacity(0.2) : null,
+          color: isSelected ? CupertinoColors.white.withOpacity(0.2) : null,
           borderRadius: BorderRadius.circular(12.0),
         ),
         padding: const EdgeInsets.symmetric(
@@ -229,9 +216,7 @@ class _AspectRatioChipWidget extends StatelessWidget {
         child: Text(
           aspectRatio,
           style: TextStyle(
-            color: isSelected
-                ? CupertinoColors.white
-                : CupertinoColors.systemGrey2,
+            color: isSelected ? CupertinoColors.white : CupertinoColors.systemGrey2,
             fontSize: 14.0,
           ),
         ),

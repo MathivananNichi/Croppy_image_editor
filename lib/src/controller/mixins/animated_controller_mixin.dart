@@ -13,8 +13,8 @@ mixin AnimatedControllerMixin on CroppableImageControllerWithMixins {
   RectTween? _staticCropRectTween;
   Tween<double>? _viewportScaleTween;
 
-  bool get isAnimating => imageDataAnimationController.isAnimating ||
-      viewportScaleAnimationController.isAnimating;
+  bool get isAnimating =>
+      imageDataAnimationController.isAnimating || viewportScaleAnimationController.isAnimating;
 
   void initAnimationControllers(TickerProvider vsync) {
     imageDataAnimationController = AnimationController(
@@ -84,17 +84,19 @@ mixin AnimatedControllerMixin on CroppableImageControllerWithMixins {
   Future<void> maybeSetAspectRatioOnInit() async {
     await Future.delayed(kCupertinoImageCropperPageTransitionDuration);
 
-    viewportScaleAnimationController.duration =
-        kCupertinoImageCropperPageTransitionDuration;
+    viewportScaleAnimationController.duration = kCupertinoImageCropperPageTransitionDuration;
 
     _isSettingAspectRatioOnInit = true;
-    await animatedNormalizeAfterTransform(super.maybeSetAspectRatioOnInit);
+    try {
+      await animatedNormalizeAfterTransform(super.maybeSetAspectRatioOnInit);
+    } catch (e) {
+      // TODO
+    }
 
     _isSettingAspectRatioOnInit = false;
     recomputeValueNotifiers();
 
-    viewportScaleAnimationController.duration =
-        const Duration(milliseconds: 150);
+    viewportScaleAnimationController.duration = const Duration(milliseconds: 150);
   }
 
   @override

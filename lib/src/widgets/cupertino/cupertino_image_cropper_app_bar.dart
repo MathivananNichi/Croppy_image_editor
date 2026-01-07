@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-
+import 'package:flutter/material.dart';
 import 'package:croppy/src/src.dart';
+
+import '../../model/croppy_style_model.dart';
 
 class CupertinoImageCropperAppBar extends StatelessWidget
     implements ObstructingPreferredSizeWidget {
@@ -117,6 +119,91 @@ class CupertinoImageCropperAppBar extends StatelessWidget
                           .copyWith(fontSize: 14.0),
                     ),
                   ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(44.0);
+
+  @override
+  bool shouldFullyObstruct(BuildContext context) => true;
+}
+
+class CupertinoImageCropperAppBarTop extends StatelessWidget
+    implements ObstructingPreferredSizeWidget {
+  const CupertinoImageCropperAppBarTop({
+    super.key,
+    required this.controller,
+   required this.shouldPopAfterCrop, required this.croppyStyleModel,
+  });
+
+  final CroppableImageController controller;
+  final CroppyStyleModel croppyStyleModel;
+  final bool shouldPopAfterCrop;
+
+  Widget _buildAppBarButtons(BuildContext context) {
+    return Container(
+      color:croppyStyleModel. backGroundColor,
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () {},
+            icon: AbsorbPointer(
+              absorbing: true,
+              child: croppyStyleModel. backIcon ?? Icon(Icons.keyboard_arrow_left),
+            ),
+          ),
+          IconButton(
+            onPressed: controller.reset,
+            icon: AbsorbPointer(
+              absorbing: true,
+              child: croppyStyleModel. resetIcon ?? Icon(Icons.lock_reset),
+            ),
+          ),
+          Spacer(),
+          IconButton(
+            onPressed:() async{
+              CroppableImagePageAnimator.of(context)?.setHeroesEnabled(true);
+
+              final result = await controller.crop();
+
+              if (context.mounted && shouldPopAfterCrop) {
+                Navigator.of(context).pop(result);
+              }
+            },
+            icon: AbsorbPointer(
+              absorbing: true,
+              child: croppyStyleModel. doneIcon ?? Icon(Icons.check),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = CroppyLocalizations.of(context)!;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: SafeArea(
+        top: true,
+        child: SizedBox(
+          height: preferredSize.height,
+          child: Stack(
+            children: [
+              _buildAppBarButtons(context),
+              Center(
+                child: Text(
+                  croppyStyleModel. titleText ?? "Image Cropper",
+                  style: croppyStyleModel. titleTextStyle ?? const TextStyle(fontSize: 12),
                 ),
               ),
             ],

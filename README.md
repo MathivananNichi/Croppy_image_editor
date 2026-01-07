@@ -6,7 +6,7 @@
 
 A fully customizable image cropper for Flutter, with built-in Material and Cupertino croppers.
 
-Check out the example at https://kekland.github.io/croppy.
+
 
 <p float="left">
   <img src="https://github.com/kekland/croppy/raw/master/doc/assets/video.gif" width="160" />
@@ -23,7 +23,6 @@ Supported platforms:
 - macOS
 - Web (uses Dart's Cassowary instead of FFI because there's no FFI support in web)
 
-NOTE: see https://github.com/kekland/croppy/issues/38. Currently I'm very busy with other projects so support might be limited.
 
 ## Features
 

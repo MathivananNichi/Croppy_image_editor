@@ -137,7 +137,16 @@ CropShape ellipseCropShapeFn(vg.PathBuilder builder, Size size) {
     ),
   );
 }
+CropShape circleCropShapeFn(vg.PathBuilder builder, Size size) {
+  final double radius = size.shortestSide / 2;
 
+  return CropShape.ellipse(
+    Ellipse2(
+      center: size.center(Offset.zero).vector2,
+      radii: Vector2(radius, radius),
+    ),
+  );
+}
 /// A function that provides a star crop path for a given size.
 CropShape starCropShapeFn(vg.PathBuilder builder, Size size) {
   final path = builder

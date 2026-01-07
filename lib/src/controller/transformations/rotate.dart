@@ -22,6 +22,22 @@ mixin RotateTransformation on BaseCroppableImageController {
       baseTransformations: newBaseTransformations,
     ));
   }
+  void onRotateACW() {
+    final newBaseTransformations = data.baseTransformations.copyWith(
+      rotationZ: (data.baseTransformations.rotationZ + pi / 2),
+    );
+
+    final transformation = getMatrixForBaseTransformations(
+      newBaseTransformations,
+    );
+
+    final cropRect = data.cropRect.transform(transformation);
+
+    onBaseTransformation(data.copyWith(
+      cropRect: cropRect,
+      baseTransformations: newBaseTransformations,
+    ));
+  }
 
   /// The base rotation around Z axis of the image in radians.
   final baseRotationZNotifier = ValueNotifier(0.0);

@@ -20,53 +20,186 @@ class DefaultCupertinoCroppableImageController extends StatefulWidget {
   final List<CropAspectRatio?>? allowedAspectRatios;
   final List<Transformation>? enabledTransformations;
 
-  final Widget Function(
-    BuildContext context,
-    CupertinoCroppableImageController controller,
-  ) builder;
+  final Widget Function(BuildContext context, CupertinoCroppableImageController controller,
+      DefaultCupertinoCroppableImageControllerState state) builder;
 
   @override
   State<DefaultCupertinoCroppableImageController> createState() =>
-      _DefaultCupertinoCroppableImageControllerState();
+      DefaultCupertinoCroppableImageControllerState();
 }
 
-class _DefaultCupertinoCroppableImageControllerState
-    extends State<DefaultCupertinoCroppableImageController>
-    with TickerProviderStateMixin {
+class DefaultCupertinoCroppableImageControllerState
+    extends State<DefaultCupertinoCroppableImageController> with TickerProviderStateMixin {
   CupertinoCroppableImageController? _controller;
+  final List<CropUndoNode> _undoStack = [];
+  final List<CropUndoNode> _redoStack = [];
+  bool _wasTransforming = false;
+
+  CropShapeType _currentShape = CropShapeType.aabb;
 
   @override
   void initState() {
     super.initState();
-    _prepareController();
+    prepareController(type: widget.initialData?.cropShape.type);
   }
 
-  Future<void> _prepareController() async {
+  Future<CupertinoCroppableImageController?> prepareController(
+      {CropShapeType? type, bool fromCrop = false}) async {
     late final CroppableImageData initialData;
-
-    if (widget.initialData != null) {
+    var tempCrop =
+        (type == CropShapeType.aabb || type == null) ? aabbCropShapeFn : circleCropShapeFn;
+    if (widget.initialData != null && !fromCrop) {
       initialData = widget.initialData!;
     } else {
       initialData = await CroppableImageData.fromImageProvider(
         widget.imageProvider,
-        cropPathFn: widget.cropShapeFn ?? aabbCropShapeFn,
+        cropPathFn: tempCrop,
       );
     }
+    // 🔥 STEP 4: RECREATE CONTROLLER
 
+    resetListener();
     _controller = CupertinoCroppableImageController(
       vsync: this,
       imageProvider: widget.imageProvider,
       data: initialData,
       postProcessFn: widget.postProcessFn,
-      cropShapeFn: widget.cropShapeFn ?? aabbCropShapeFn,
+      cropShapeFn: tempCrop,
       allowedAspectRatios: widget.allowedAspectRatios,
-      enabledTransformations:
-          widget.enabledTransformations ?? Transformation.values,
+      enabledTransformations: widget.enabledTransformations ?? Transformation.values,
     );
+    _pushUndoNode(_controller, data: initialData);
+    initialiseListener(_controller!);
 
     if (mounted) {
       setState(() {});
     }
+    return _controller;
+  }
+
+  changeAspectRatio({CropAspectRatio? ratio, CropShapeType? shapeType}) {
+    bool isElipse = shapeType == CropShapeType.ellipse;
+    if (_controller!.cropShapeFn != circleCropShapeFn && (isElipse)) {
+      print("----  Current shape changed to Square to Circle ");
+      prepareController(type: CropShapeType.ellipse, fromCrop: true);
+    } else if (_controller!.cropShapeFn == circleCropShapeFn && (!isElipse)) {
+      print("----  Current shape changed to circle to square ");
+      prepareController(type: CropShapeType.aabb, fromCrop: true).then((localController) {
+        (localController as AspectRatioMixin).currentAspectRatio = ratio;
+      });
+    } else {
+      (_controller as AspectRatioMixin).currentAspectRatio = ratio;
+    }
+  }
+
+  resetListener() {
+    _controller?.dispose();
+    _controller = null;
+    _controller?.removeListener(_onControllerChanged);
+    _controller?.aspectRatioNotifier.removeListener(_onAspectRatioChanged);
+  }
+
+  initialiseListener(CupertinoCroppableImageController controller) {
+    // initialize guards FIRST
+    _wasTransforming = controller.isTransforming;
+
+    controller.addListener(_onControllerChanged);
+    controller.baseNotifier.addListener(() {
+      _pushUndoNode(_controller, data: controller.baseNotifier.value);
+    });
+    controller.aspectRatioNotifier.addListener(_onAspectRatioChanged);
+  }
+
+  void _onAspectRatioChanged() {
+    _pushUndoNode(
+      _controller,
+    );
+  }
+
+  void _onControllerChanged() {
+    if (_controller == null) return;
+
+    final isTransforming = _controller!.isTransforming;
+
+    // 🔥 Gesture JUST finished (rotate / zoom / drag / flip)
+    if (_wasTransforming && !isTransforming) {
+      _pushUndoNode(_controller);
+    }
+
+    _wasTransforming = isTransforming;
+  }
+
+  void _pushUndoNode(CupertinoCroppableImageController? controller, {CroppableImageData? data}) {
+    if (_controller == null) return;
+    //
+    // if (_undoStack.isNotEmpty &&
+    //     _undoStack.last.data == _controller!.data &&
+    //     _undoStack.last.shape == _currentShape) {
+    //   return;
+    // }
+
+    _undoStack.add(
+      CropUndoNode(
+        data: data?.copyWith() ?? _controller!.data.copyWith(),
+        shape: _currentShape,
+      ),
+    );
+
+    _redoStack.clear();
+  }
+
+  void undo() {
+    if (_undoStack.length <= 1) return;
+
+    final current = _undoStack.removeLast();
+    _redoStack.add(current);
+
+    final previous = _undoStack.last;
+
+    _currentShape = previous.shape;
+
+    _controller?.dispose();
+
+    _controller = CupertinoCroppableImageController(
+      vsync: this,
+      imageProvider: widget.imageProvider,
+      data: previous.data.copyWith(),
+      cropShapeFn: previous.data.cropShape.type == CropShapeType.ellipse
+          ? circleCropShapeFn
+          : aabbCropShapeFn,
+      allowedAspectRatios: widget.allowedAspectRatios,
+      enabledTransformations: widget.enabledTransformations ?? Transformation.values,
+    );
+    initialiseListener(_controller!);
+    setState(() {});
+  }
+
+  void redo() {
+    if (_redoStack.isEmpty) return;
+
+    final next = _redoStack.removeLast();
+    _undoStack.add(next);
+
+    _currentShape = next.shape;
+
+    resetListener();
+
+    _controller = CupertinoCroppableImageController(
+      vsync: this,
+      imageProvider: widget.imageProvider,
+      data: next.data.copyWith(),
+      cropShapeFn:
+          next.data.cropShape.type == CropShapeType.ellipse ? circleCropShapeFn : aabbCropShapeFn,
+      allowedAspectRatios: widget.allowedAspectRatios,
+      enabledTransformations: widget.enabledTransformations ?? Transformation.values,
+    );
+    initialiseListener(_controller!);
+    setState(() {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
   }
 
   @override
@@ -81,6 +214,6 @@ class _DefaultCupertinoCroppableImageControllerState
       return const SizedBox.shrink();
     }
 
-    return widget.builder(context, _controller!);
+    return widget.builder(context, _controller!, this);
   }
 }

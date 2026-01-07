@@ -31,8 +31,7 @@ class ExampleScrollBehavior extends MaterialScrollBehavior {
       };
 
   @override
-  ScrollPhysics getScrollPhysics(BuildContext context) =>
-      const BouncingScrollPhysics();
+  ScrollPhysics getScrollPhysics(BuildContext context) => const BouncingScrollPhysics();
 }
 
 class MyApp extends StatelessWidget {
@@ -71,7 +70,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late final PageController _pageController;
-  var _cropSettings = CropSettings.initial();
+
 
   @override
   void initState() {
@@ -127,14 +126,7 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: [
           IconButton(
             onPressed: () async {
-              final newSettings = await showCropSettingsModal(
-                context: context,
-                initialSettings: _cropSettings,
-              );
 
-              setState(() {
-                _cropSettings = newSettings;
-              });
             },
             icon: const Icon(Icons.settings),
           ),
@@ -154,17 +146,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
               showCupertinoImageCropper(
                 context,
-                locale: _cropSettings.locale,
                 imageProvider: _imageProviders[page],
+                croppyStyleModel: CroppyStyleModel(
+                    backGroundColor: Color(0xFFE4F9FC), bottomIconColor: Color(0xFF12BCD4)),
                 heroTag: 'image-$page',
                 initialData: _data[page],
-                showGestureHandlesOn: _cropSettings.showGestureHandlesOn,
-                cropPathFn: _cropSettings.cropShapeFn,
+
                 showLoadingIndicatorOnSubmit: false,
-                enabledTransformations: _cropSettings.enabledTransformations,
-                allowedAspectRatios: _cropSettings.forcedAspectRatio != null
-                    ? [_cropSettings.forcedAspectRatio!]
-                    : null,
                 postProcessFn: (result) async {
                   _croppedImage[page]?.dispose();
 
@@ -181,37 +169,37 @@ class _MyHomePageState extends State<MyHomePage> {
             child: const Icon(Icons.apple_rounded),
           ),
           const SizedBox(width: 16.0),
-          FloatingActionButton(
-            onPressed: () {
-              final page = _pageController.page?.round() ?? 0;
-
-              showMaterialImageCropper(
-                context,
-                locale: _cropSettings.locale,
-                imageProvider: _imageProviders[page],
-                heroTag: 'image-$page',
-                initialData: _data[page],
-                cropPathFn: _cropSettings.cropShapeFn,
-                enabledTransformations: _cropSettings.enabledTransformations,
-                allowedAspectRatios: _cropSettings.forcedAspectRatio != null
-                    ? [_cropSettings.forcedAspectRatio!]
-                    : null,
-                showLoadingIndicatorOnSubmit: false,
-                postProcessFn: (result) async {
-                  _croppedImage[page]?.dispose();
-
-                  setState(() {
-                    _croppedImage[page] = result.uiImage;
-                    _data[page] = result.transformationsData;
-                  });
-
-                  return result;
-                },
-              );
-            },
-            heroTag: 'fab-material',
-            child: const Icon(Icons.android_rounded),
-          ),
+          // FloatingActionButton(
+          //   onPressed: () {
+          //     final page = _pageController.page?.round() ?? 0;
+          //
+          //     showMaterialImageCropper(
+          //       context,
+          //       locale: _cropSettings.locale,
+          //       imageProvider: _imageProviders[page],
+          //       heroTag: 'image-$page',
+          //       initialData: _data[page],
+          //       cropPathFn: _cropSettings.cropShapeFn,
+          //       enabledTransformations: _cropSettings.enabledTransformations,
+          //       allowedAspectRatios: _cropSettings.forcedAspectRatio != null
+          //           ? [_cropSettings.forcedAspectRatio!]
+          //           : null,
+          //       showLoadingIndicatorOnSubmit: false,
+          //       postProcessFn: (result) async {
+          //         _croppedImage[page]?.dispose();
+          //
+          //         setState(() {
+          //           _croppedImage[page] = result.uiImage;
+          //           _data[page] = result.transformationsData;
+          //         });
+          //
+          //         return result;
+          //       },
+          //     );
+          //   },
+          //   heroTag: 'fab-material',
+          //   child: const Icon(Icons.android_rounded),
+          // ),
           const SizedBox(width: 16.0),
           FloatingActionButton(
             onPressed: () {
@@ -251,8 +239,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Center(
                 child: Hero(
                   tag: 'image-$i',
-                  placeholderBuilder: (context, size, child) =>
-                      Visibility.maintain(
+                  placeholderBuilder: (context, size, child) => Visibility.maintain(
                     visible: false,
                     child: child,
                   ),

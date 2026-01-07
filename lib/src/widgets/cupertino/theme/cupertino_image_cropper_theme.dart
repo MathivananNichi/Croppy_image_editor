@@ -6,6 +6,6 @@ CupertinoThemeData generateCupertinoImageCropperTheme(BuildContext context) {
   final materialTheme = generateMaterialImageCropperTheme(context);
 
   return MaterialBasedCupertinoThemeData(materialTheme: materialTheme).copyWith(
-    scaffoldBackgroundColor: kCupertinoImageCropperBackgroundColor,
+    scaffoldBackgroundColor: Colors.black,
   );
 }

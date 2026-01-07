@@ -1,23 +1,23 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:croppy/src/src.dart';
 import 'package:flutter/material.dart';
 
 /// A croppable image controller that is similar to the iOS Photos app.
-class CupertinoCroppableImageController
-    extends CroppableImageControllerWithMixins
+class CupertinoCroppableImageController extends CroppableImageControllerWithMixins
     with AnimatedControllerMixin, TransformationFrictionMixin {
   CupertinoCroppableImageController({
     required TickerProvider vsync,
     required super.data,
+    this.onRotateCommitted,
     required super.imageProvider,
     super.postProcessFn,
     super.cropShapeFn,
     super.enabledTransformations,
     super.minimumCropDimension,
     List<CropAspectRatio?>? allowedAspectRatios,
-  }) : allowedAspectRatios =
-            allowedAspectRatios ?? _createDefaultAspectRatios(data.imageSize) {
+  }) : allowedAspectRatios = allowedAspectRatios ?? _createDefaultAspectRatios(data.imageSize) {
     initAnimationControllers(vsync);
     maybeSetAspectRatioOnInit();
   }
@@ -25,10 +25,11 @@ class CupertinoCroppableImageController
   /// Allowed aspect ratios for the aspect ratio toolbar.
   @override
   final List<CropAspectRatio?> allowedAspectRatios;
+  VoidCallback? onRotateCommitted;
 
   /// Whether the guide lines are visible.
   final guideLinesVisibility = ValueNotifier<bool>(false);
-
+  final baseNotifier = ValueNotifier<CroppableImageData?>(null);
   final toolbarNotifier = ValueNotifier<CupertinoCroppableImageToolbar>(
     CupertinoCroppableImageToolbar.transform,
   );
@@ -39,6 +40,7 @@ class CupertinoCroppableImageController
   }) {
     if (isRotatingZ) {
       super.onStraighten(angleRad: angleRad);
+
       normalize();
       setViewportScale();
     } else {
@@ -49,20 +51,25 @@ class CupertinoCroppableImageController
         },
       );
     }
+// 🔥 ROTATION FINISHED
+    onRotateCommitted?.call();
   }
 
   @override
   void onRotateX({
     required double angleRad,
   }) {
+    log("-onRotateX");
     if (isRotatingX) {
       super.onRotateX(angleRad: angleRad);
+      onRotateCommitted?.call();
       normalize();
       setViewportScale();
     } else {
       animatedNormalizeAfterTransform(
         () {
           super.onRotateX(angleRad: angleRad);
+          onRotateCommitted?.call();
           normalize();
         },
       );
@@ -74,6 +81,7 @@ class CupertinoCroppableImageController
     required double angleRad,
   }) {
     if (isRotatingY) {
+      log("-onRotateX");
       super.onRotateY(angleRad: angleRad);
       normalize();
       setViewportScale();
@@ -84,6 +92,16 @@ class CupertinoCroppableImageController
           normalize();
         },
       );
+    }
+  }
+
+  @override
+  void onBaseTransformation(CroppableImageData newData) {
+    super.onBaseTransformation(newData);
+
+    // Aspect ratio & non-gesture changes
+    if (!isTransforming) {
+      baseNotifier.value = newData;
     }
   }
 
@@ -138,10 +156,12 @@ class CupertinoCroppableImageController
   @override
   void onTransformationEnd() {
     super.onTransformationEnd();
+
     maybeHideGuideLines();
   }
 
   Timer? _recomputeViewportScaleTimer;
+
   void recomputeViewportScaleWithDelay() {
     _recomputeViewportScaleTimer?.cancel();
     _recomputeViewportScaleTimer = Timer(

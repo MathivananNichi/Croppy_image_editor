@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -133,7 +134,9 @@ abstract class BaseCroppableImageController extends ChangeNotifier {
   @mustCallSuper
   void onTransformation(dynamic args) {
     lastTransformationArgs = args;
+
     notifyListeners();
+
   }
 
   /// Called when a transformation ends.
@@ -154,6 +157,7 @@ abstract class BaseCroppableImageController extends ChangeNotifier {
   /// this to update the [data] and notify listeners.
   void onBaseTransformation(CroppableImageData newData) {
     data = newData;
+
     notifyListeners();
   }
 
@@ -200,6 +204,11 @@ abstract class BaseCroppableImageController extends ChangeNotifier {
   /// Resets the controller to its initial state.
   void reset() {
     data = _resetData;
+    notifyListeners();
+  }
+  /// Resets the controller to its initial state.
+  void CahnageShaoe(CroppableImageData newData) {
+    data = newData;
     notifyListeners();
   }
 

@@ -60,7 +60,7 @@ class CustomCropper extends StatelessWidget {
       imageProvider: imageProvider,
       initialData: initialData,
       postProcessFn: onCropped,
-      builder: (context, controller) {
+      builder: (context, controller, state) {
         return CroppableImagePageAnimator(
           controller: controller,
           heroTag: heroTag,

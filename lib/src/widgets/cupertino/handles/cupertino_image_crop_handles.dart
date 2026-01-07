@@ -40,6 +40,7 @@ class CupertinoImageCropHandles extends StatelessWidget {
     );
 
     final cropShape = controller.data.cropShape;
+    // print("fffffff  ${controller.data.cropShape}");
 
     Widget child = Stack(
       fit: StackFit.passthrough,
