@@ -22,6 +22,7 @@ mixin RotateTransformation on BaseCroppableImageController {
       baseTransformations: newBaseTransformations,
     ));
   }
+
   void onRotateACW() {
     final newBaseTransformations = data.baseTransformations.copyWith(
       rotationZ: (data.baseTransformations.rotationZ + pi / 2),
@@ -38,20 +39,23 @@ mixin RotateTransformation on BaseCroppableImageController {
       baseTransformations: newBaseTransformations,
     ));
   }
+
   void onRotateByAngle({
     double angleRad = pi / 2,
-    required RotateDirection direction,
+    RotateDirection? direction,
   }) {
     // Determine signed angle
-    final double signedAngle =
-    direction == RotateDirection.right ? angleRad : -angleRad;
+    final double signedAngle = direction == null
+        ? angleRad
+        : direction == RotateDirection.right
+            ? angleRad
+            : -angleRad;
 
     final newBaseTransformations = data.baseTransformations.copyWith(
       rotationZ: data.baseTransformations.rotationZ + signedAngle,
     );
 
-    final transformation =
-    getMatrixForBaseTransformations(newBaseTransformations);
+    final transformation = getMatrixForBaseTransformations(newBaseTransformations);
 
     final newCropRect = data.cropRect.transform(transformation);
 
@@ -62,6 +66,7 @@ mixin RotateTransformation on BaseCroppableImageController {
       ),
     );
   }
+
   /// The base rotation around Z axis of the image in radians.
   final baseRotationZNotifier = ValueNotifier(0.0);
 
