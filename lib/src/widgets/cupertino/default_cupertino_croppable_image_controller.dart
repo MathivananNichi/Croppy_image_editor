@@ -286,6 +286,7 @@ class DefaultCupertinoCroppableImageControllerState
       cropShapeFn: previous.data.cropShape.type == CropShapeType.ellipse
           ? circleCropShapeFn
           : aabbCropShapeFn,
+      postProcessFn: widget.postProcessFn,
       allowedAspectRatios: widget.allowedAspectRatios,
       enabledTransformations: widget.enabledTransformations ?? Transformation.values,
     );
@@ -334,6 +335,7 @@ class DefaultCupertinoCroppableImageControllerState
     _controller = CupertinoCroppableImageController(
       vsync: this,
       imageProvider: widget.imageProvider,
+      postProcessFn: widget.postProcessFn,
       data: next.data.copyWith(),
       cropShapeFn:
           next.data.cropShape.type == CropShapeType.ellipse ? circleCropShapeFn : aabbCropShapeFn,
