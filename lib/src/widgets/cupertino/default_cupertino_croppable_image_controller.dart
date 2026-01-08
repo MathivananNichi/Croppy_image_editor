@@ -33,6 +33,7 @@ class DefaultCupertinoCroppableImageControllerState
   CupertinoCroppableImageController? _controller;
   final List<CropUndoNode> _undoStack = [];
   final List<CropUndoNode> _redoStack = [];
+  late final CroppableImageData _resetData;
   bool _wasTransforming = false;
   final ValueNotifier<UndoRedoState> undoRedoNotifier =
       ValueNotifier(const UndoRedoState(canUndo: false, canRedo: false));
@@ -56,6 +57,7 @@ class DefaultCupertinoCroppableImageControllerState
         widget.imageProvider,
         cropPathFn: tempCrop,
       );
+      _resetData=initialData;
     }
     // 🔥 STEP 4: RECREATE CONTROLLER
 
@@ -188,8 +190,8 @@ class DefaultCupertinoCroppableImageControllerState
     setState(() {});
   }
 
-  resetData(CroppableImageData data) {
-    _controller!.resetProcess(data);
+  resetData() {
+    _controller!.resetProcess(_resetData);
     _redoStack.clear();
     var temp = _undoStack.removeAt(0);
     _undoStack.clear();
