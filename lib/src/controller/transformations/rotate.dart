@@ -7,21 +7,7 @@ import 'package:flutter/widgets.dart';
 mixin RotateTransformation on BaseCroppableImageController {
   /// Rotates the image counter-clockwise by 90 degrees.
 
-  double _getSnappedAngle({
-    required double currentRad,
-    required bool clockwise,
-  }) {
-    final currentDeg = _normalizeDeg(_radToDeg(currentRad));
 
-    final lower = (currentDeg ~/ 90) * 90;
-    final upper = lower + 90;
-
-    final targetDeg = clockwise
-        ? (upper >= 360 ? 360 : upper)
-        : lower;
-
-    return _degToRad(targetDeg.toDouble());
-  }
   double _radToDeg(double rad) => rad * 180 / pi;
   double _degToRad(double deg) => deg * pi / 180;
 
@@ -34,10 +20,7 @@ mixin RotateTransformation on BaseCroppableImageController {
     final currentDeg =
     _radToDeg(data.baseTransformations.rotationZ);
 
-    final targetDeg = _nextRotationDeg(
-      currentDeg: currentDeg,
-      clockwise: false,
-    );
+    final targetDeg = currentDeg - 90; // 🔥 JUST ADD
 
     final targetRad = _degToRad(targetDeg);
 
@@ -59,15 +42,11 @@ mixin RotateTransformation on BaseCroppableImageController {
       ),
     );
   }
-
   void onRotateACW() {
     final currentDeg =
     _radToDeg(data.baseTransformations.rotationZ);
 
-    final targetDeg = _nextRotationDeg(
-      currentDeg: currentDeg,
-      clockwise: true,
-    );
+    final targetDeg = currentDeg + 90; // 🔥 JUST ADD
 
     final targetRad = _degToRad(targetDeg);
 
@@ -91,25 +70,6 @@ mixin RotateTransformation on BaseCroppableImageController {
   }
 
 
-  double _nextRotationDeg({
-    required double currentDeg,
-    required bool clockwise,
-  }) {
-    final normalized = _normalizeDeg(currentDeg);
-
-    if (_isExact90(normalized)) {
-      // ✅ Normal step
-      return clockwise
-          ? normalized + 90
-          : normalized - 90;
-    } else {
-      // ✅ Snap first
-      final lower = (normalized ~/ 90) * 90;
-      final upper = lower + 90;
-
-      return (clockwise ? upper : lower).toDouble();
-    }
-  }
   void onRotateByAngle({
     double angleRad = pi / 2,
     RotateDirection? direction,

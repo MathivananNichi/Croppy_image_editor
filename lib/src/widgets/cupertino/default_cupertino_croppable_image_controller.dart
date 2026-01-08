@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:croppy/src/src.dart';
 import 'package:flutter/material.dart';
 
@@ -87,6 +89,8 @@ class DefaultCupertinoCroppableImageControllerState
       enabledTransformations: widget.enabledTransformations ?? Transformation.values,
     );
     if (widget.fixedAspect != null && !fromCrop) {
+      var temp=aspectFromDouble(widget.fixedAspect!);
+      log("aaaaaaaaaaa ${temp}");
       _controller!.currentAspectRatio = aspectFromDouble(widget.fixedAspect!);
     }
 
