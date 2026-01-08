@@ -42,7 +42,8 @@ class DefaultCupertinoCroppableImageControllerState
   @override
   void initState() {
     super.initState();
-    prepareController(type: widget.initialData?.cropShape.type).then((val) {
+    prepareController(type: widget.initialData?.cropShape.type, initialDatas: widget.initialData)
+        .then((val) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _resetData = val!.data.copyWith();
         setState(() {});
@@ -51,12 +52,12 @@ class DefaultCupertinoCroppableImageControllerState
   }
 
   Future<CupertinoCroppableImageController?> prepareController(
-      {CropShapeType? type, bool fromCrop = false}) async {
+      {CropShapeType? type, bool fromCrop = false, CroppableImageData? initialDatas}) async {
     late final CroppableImageData initialData;
     var tempCrop =
         (type == CropShapeType.aabb || type == null) ? aabbCropShapeFn : circleCropShapeFn;
-    if (widget.initialData != null && !fromCrop) {
-      initialData = widget.initialData!;
+    if (initialDatas != null && !fromCrop) {
+      initialData = initialDatas!;
     } else {
       initialData = await CroppableImageData.fromImageProvider(
         widget.imageProvider,
@@ -194,15 +195,30 @@ class DefaultCupertinoCroppableImageControllerState
     setState(() {});
   }
 
+  void hardReset() {
+    _undoStack.clear();
+    _redoStack.clear();
+
+    _controller?.onBaseTransformation(
+      _resetData.copyWith(),
+    );
+
+    _updateUndoRedoNotifier();
+  }
+
   resetData() {
-    _controller?.resetProcess(_resetData.copyWith());
     _controller?.onBaseTransformation(_resetData.copyWith());
+
     // _controller!.resetProcess(_resetData);
     // _redoStack.clear();
     // var temp = _undoStack.removeAt(0);
     // _undoStack.clear();
     // _undoStack.add(temp);
     // _updateUndoRedoNotifier();
+  }
+
+  resetDateWithInitializecontroller() {
+    prepareController(type: _resetData?.cropShape.type, initialDatas: _resetData.copyWith());
   }
 
   void redo() {
