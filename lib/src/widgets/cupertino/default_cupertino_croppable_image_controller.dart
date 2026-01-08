@@ -54,6 +54,13 @@ class DefaultCupertinoCroppableImageControllerState
       });
     });
   }
+  void _restoreFromUndoNode(CropUndoNode node) {
+    _controller?.onBaseTransformation(
+      node.data.copyWith(
+        currentImageTransform: Matrix4.identity(),
+      ),
+    );
+  }
 
   CropAspectRatio aspectFromDouble(double fixedAspect) {
     const int base = 1000; // keeps precision
@@ -208,6 +215,7 @@ class DefaultCupertinoCroppableImageControllerState
       allowedAspectRatios: widget.allowedAspectRatios,
       enabledTransformations: widget.enabledTransformations ?? Transformation.values,
     );
+    _restoreFromUndoNode(previous);
     initialiseListener(_controller!);
     _updateUndoRedoNotifier();
     setState(() {});
@@ -258,6 +266,7 @@ class DefaultCupertinoCroppableImageControllerState
       allowedAspectRatios: widget.allowedAspectRatios,
       enabledTransformations: widget.enabledTransformations ?? Transformation.values,
     );
+    _restoreFromUndoNode(next);
     initialiseListener(_controller!);
     _updateUndoRedoNotifier();
     setState(() {});
