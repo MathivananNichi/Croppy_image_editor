@@ -54,6 +54,7 @@ class DefaultCupertinoCroppableImageControllerState
       });
     });
   }
+
   void _restoreFromUndoNode(CropUndoNode node) {
     _controller?.onBaseTransformation(
       node.data.copyWith(
@@ -96,9 +97,10 @@ class DefaultCupertinoCroppableImageControllerState
       enabledTransformations: widget.enabledTransformations ?? Transformation.values,
     );
     if (widget.fixedAspect != null && !fromCrop) {
-      var temp=aspectFromDouble(widget.fixedAspect!);
+      var temp = aspectFromDouble(widget.fixedAspect!);
       log("aaaaaaaaaaa ${temp}");
       _controller!.currentAspectRatio = aspectFromDouble(widget.fixedAspect!);
+      applyInitialCrop(fixedAspect: widget.fixedAspect!, widthFactor: 1);
     }
 
     _pushUndoNode(_controller, data: initialData);
@@ -108,6 +110,26 @@ class DefaultCupertinoCroppableImageControllerState
       setState(() {});
     }
     return _controller;
+  }
+
+  void applyInitialCrop({
+    required double fixedAspect,
+    required double widthFactor,
+  }) {
+    final imageSize = _controller!.data.imageSize;
+
+    final cropWidth = imageSize.width * widthFactor;
+    final cropHeight = cropWidth / fixedAspect;
+
+    final rect = Rect.fromCenter(
+      center: imageSize.center(Offset.zero),
+      width: cropWidth,
+      height: cropHeight,
+    );
+
+    _controller?.onBaseTransformation(
+      _controller!.data.copyWith(cropRect: rect),
+    );
   }
 
   changeAspectRatio({CropAspectRatio? ratio, CropShapeType? shapeType}) {
