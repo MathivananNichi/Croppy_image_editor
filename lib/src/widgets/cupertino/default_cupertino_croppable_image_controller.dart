@@ -54,7 +54,18 @@ class DefaultCupertinoCroppableImageControllerState
       });
     });
   }
-
+  void applyAspect(double fixedAspect) {
+    if (fixedAspect == 1.0) {
+      _controller?.currentAspectRatio =
+      const CropAspectRatio(width: 1, height: 1);
+    } else {
+      const int base = 1000;
+      _controller?.currentAspectRatio = CropAspectRatio(
+        width: (fixedAspect * base).round(),
+        height: base,
+      );
+    }
+  }
   void _restoreFromUndoNode(CropUndoNode node) {
     // _controller?.onBaseTransformation(
     //   node.data.copyWith(
@@ -62,14 +73,28 @@ class DefaultCupertinoCroppableImageControllerState
     //   ),
     // );
   }
+  CropAspectRatio? snapFromAllowedAspectRatios(
+      double fixedAspect,
+      List<CropAspectRatio?> allowedAspectRatios,
+      ) {
+    CropAspectRatio? closest;
+    double minDiff = double.infinity;
 
-  CropAspectRatio aspectFromDouble(double fixedAspect) {
-    const int base = 1000; // keeps precision
-    return CropAspectRatio(
-      width: (fixedAspect * base).round(),
-      height: base,
-    );
+    for (final ratio in allowedAspectRatios) {
+      if (ratio == null) continue; // skip free crop
+
+      final value = ratio.width / ratio.height;
+      final diff = (fixedAspect - value).abs();
+
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = ratio;
+      }
+    }
+
+    return closest;
   }
+
 
   Future<CupertinoCroppableImageController?> prepareController(
       {CropShapeType? type, bool fromCrop = false, CroppableImageData? initialDatas}) async {
@@ -96,12 +121,14 @@ class DefaultCupertinoCroppableImageControllerState
       allowedAspectRatios: widget.allowedAspectRatios,
       enabledTransformations: widget.enabledTransformations ?? Transformation.values,
     );
-    // if (widget.fixedAspect != null && !fromCrop) {
-    //   var temp = aspectFromDouble(widget.fixedAspect!);
-    //   log("aaaaaaaaaaa ${temp}");
-    //   _controller!.currentAspectRatio = aspectFromDouble(widget.fixedAspect!);
-    //   applyInitialCrop(fixedAspect: widget.fixedAspect!, widthFactor: 1);
-    // }
+    if (widget.fixedAspect != null && !fromCrop) {
+      final snapped = snapFromAllowedAspectRatios(
+        widget.fixedAspect!,
+        widget.allowedAspectRatios??[],
+      );
+      _controller!.currentAspectRatio = snapped;
+      applyAspect( widget.fixedAspect!);
+    }
 
     _pushUndoNode(_controller, data: initialData);
     initialiseListener(_controller!);
