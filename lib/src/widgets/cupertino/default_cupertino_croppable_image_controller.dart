@@ -195,7 +195,8 @@ class DefaultCupertinoCroppableImageControllerState
   }
 
   resetData() {
-    _controller!.resetProcess(_resetData);
+    _controller?.onBaseTransformation(_resetData.copyWith());
+    // _controller!.resetProcess(_resetData);
     // _redoStack.clear();
     // var temp = _undoStack.removeAt(0);
     // _undoStack.clear();
