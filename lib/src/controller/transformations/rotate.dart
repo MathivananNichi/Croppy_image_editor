@@ -38,7 +38,30 @@ mixin RotateTransformation on BaseCroppableImageController {
       baseTransformations: newBaseTransformations,
     ));
   }
+  void onRotateByAngle({
+    double angleRad = pi / 2,
+    required RotateDirection direction,
+  }) {
+    // Determine signed angle
+    final double signedAngle =
+    direction == RotateDirection.right ? angleRad : -angleRad;
 
+    final newBaseTransformations = data.baseTransformations.copyWith(
+      rotationZ: data.baseTransformations.rotationZ + signedAngle,
+    );
+
+    final transformation =
+    getMatrixForBaseTransformations(newBaseTransformations);
+
+    final newCropRect = data.cropRect.transform(transformation);
+
+    onBaseTransformation(
+      data.copyWith(
+        cropRect: newCropRect,
+        baseTransformations: newBaseTransformations,
+      ),
+    );
+  }
   /// The base rotation around Z axis of the image in radians.
   final baseRotationZNotifier = ValueNotifier(0.0);
 

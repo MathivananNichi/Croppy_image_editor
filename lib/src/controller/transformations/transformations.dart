@@ -8,3 +8,7 @@ enum Transformation {
   rotateY,
   rotateX,
 }
+enum RotateDirection {
+  left,  // anticlockwise
+  right, // clockwise
+}
