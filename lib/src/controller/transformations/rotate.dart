@@ -7,38 +7,71 @@ import 'package:flutter/widgets.dart';
 mixin RotateTransformation on BaseCroppableImageController {
   /// Rotates the image counter-clockwise by 90 degrees.
   void onRotateCCW() {
+    final targetRotationRad = _getSnappedAngle(
+      currentRad: data.baseTransformations.rotationZ,
+      clockwise: false,
+    );
+
     final newBaseTransformations = data.baseTransformations.copyWith(
-      rotationZ: data.baseTransformations.rotationZ - pi / 2,
+      rotationZ: targetRotationRad,
     );
 
-    final transformation = getMatrixForBaseTransformations(
-      newBaseTransformations,
+    final transformation =
+    getMatrixForBaseTransformations(newBaseTransformations);
+
+    final newCropRect = data.cropRect.transform(transformation);
+
+    onBaseTransformation(
+      data.copyWith(
+        cropRect: newCropRect,
+        baseTransformations: newBaseTransformations,
+      ),
     );
-
-    final cropRect = data.cropRect.transform(transformation);
-
-    onBaseTransformation(data.copyWith(
-      cropRect: cropRect,
-      baseTransformations: newBaseTransformations,
-    ));
   }
+  double _getSnappedAngle({
+    required double currentRad,
+    required bool clockwise,
+  }) {
+    final currentDeg = _normalizeDeg(_radToDeg(currentRad));
 
+    final lower = (currentDeg ~/ 90) * 90;
+    final upper = lower + 90;
+
+    final targetDeg = clockwise
+        ? (upper >= 360 ? 360 : upper)
+        : lower;
+
+    return _degToRad(targetDeg.toDouble());
+  }
+  double _radToDeg(double rad) => rad * 180 / pi;
+  double _degToRad(double deg) => deg * pi / 180;
+
+  double _normalizeDeg(double deg) {
+    return (deg % 360 + 360) % 360;
+  }
   void onRotateACW() {
+    final targetRotationRad = _getSnappedAngle(
+      currentRad: data.baseTransformations.rotationZ,
+      clockwise: true,
+    );
+
     final newBaseTransformations = data.baseTransformations.copyWith(
-      rotationZ: (data.baseTransformations.rotationZ + pi / 2),
+      rotationZ: targetRotationRad,
     );
 
-    final transformation = getMatrixForBaseTransformations(
-      newBaseTransformations,
+    final transformation =
+    getMatrixForBaseTransformations(newBaseTransformations);
+
+    final newCropRect = data.cropRect.transform(transformation);
+
+    onBaseTransformation(
+      data.copyWith(
+        cropRect: newCropRect,
+        baseTransformations: newBaseTransformations,
+      ),
     );
-
-    final cropRect = data.cropRect.transform(transformation);
-
-    onBaseTransformation(data.copyWith(
-      cropRect: cropRect,
-      baseTransformations: newBaseTransformations,
-    ));
   }
+
 
   void onRotateByAngle({
     double angleRad = pi / 2,
