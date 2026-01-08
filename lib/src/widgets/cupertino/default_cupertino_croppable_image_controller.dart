@@ -34,7 +34,8 @@ class DefaultCupertinoCroppableImageControllerState
   final List<CropUndoNode> _undoStack = [];
   final List<CropUndoNode> _redoStack = [];
   bool _wasTransforming = false;
-
+  final ValueNotifier<UndoRedoState> undoRedoNotifier =
+      ValueNotifier(const UndoRedoState(canUndo: false, canRedo: false));
   CropShapeType _currentShape = CropShapeType.aabb;
 
   @override
@@ -128,8 +129,18 @@ class DefaultCupertinoCroppableImageControllerState
 
     _wasTransforming = isTransforming;
   }
+
   bool get canUndo => _undoStack.length > 1;
+
   bool get canRedo => _redoStack.isNotEmpty;
+
+  void _updateUndoRedoNotifier() {
+    undoRedoNotifier.value = UndoRedoState(
+      canUndo: _undoStack.length > 1,
+      canRedo: _redoStack.isNotEmpty,
+    );
+  }
+
   void _pushUndoNode(CupertinoCroppableImageController? controller, {CroppableImageData? data}) {
     if (_controller == null) return;
     //
@@ -147,6 +158,7 @@ class DefaultCupertinoCroppableImageControllerState
     );
 
     _redoStack.clear();
+    _updateUndoRedoNotifier();
   }
 
   void undo() {
@@ -172,6 +184,7 @@ class DefaultCupertinoCroppableImageControllerState
       enabledTransformations: widget.enabledTransformations ?? Transformation.values,
     );
     initialiseListener(_controller!);
+    _updateUndoRedoNotifier();
     setState(() {});
   }
 
@@ -195,6 +208,7 @@ class DefaultCupertinoCroppableImageControllerState
       enabledTransformations: widget.enabledTransformations ?? Transformation.values,
     );
     initialiseListener(_controller!);
+    _updateUndoRedoNotifier();
     setState(() {});
   }
 

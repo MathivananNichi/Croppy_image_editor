@@ -37,3 +37,13 @@ class CropUndoNode {
     required this.shape,
   });
 }
+
+class UndoRedoState {
+  final bool canUndo;
+  final bool canRedo;
+
+  const UndoRedoState({
+    required this.canUndo,
+    required this.canRedo,
+  });
+}
