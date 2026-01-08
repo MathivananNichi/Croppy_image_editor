@@ -95,6 +95,25 @@ class DefaultCupertinoCroppableImageControllerState
     return closest;
   }
 
+  void _centerCropRect(CupertinoCroppableImageController controller) {
+    final imageSize = controller.data.imageSize;
+    final rect = controller.data.cropRect;
+
+    final centered = Rect.fromCenter(
+      center: imageSize.center(Offset.zero),
+      width: rect.width,
+      height: rect.height,
+    );
+
+    controller.onBaseTransformation(
+      controller.data.copyWith(
+        cropRect: centered,
+        currentImageTransform: Matrix4.identity(),
+      ),
+    );
+
+    controller.normalize();
+  }
 
   Future<CupertinoCroppableImageController?> prepareController(
       {CropShapeType? type, bool fromCrop = false, CroppableImageData? initialDatas}) async {
@@ -129,7 +148,7 @@ class DefaultCupertinoCroppableImageControllerState
       _controller!.currentAspectRatio = snapped;
       applyAspect( widget.fixedAspect!);
     }
-
+    _centerCropRect(_controller!);
     _pushUndoNode(_controller, data: initialData);
     initialiseListener(_controller!);
 
