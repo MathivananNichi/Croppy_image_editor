@@ -30,9 +30,11 @@ class CupertinoCroppableImageController extends CroppableImageControllerWithMixi
   /// Whether the guide lines are visible.
   final guideLinesVisibility = ValueNotifier<bool>(false);
   final baseNotifier = ValueNotifier<CroppableImageData?>(null);
+  final flipNotifier = ValueNotifier<bool?>(null);
   final toolbarNotifier = ValueNotifier<CupertinoCroppableImageToolbar>(
     CupertinoCroppableImageToolbar.transform,
   );
+  bool _commandLocked = false;
 
   @override
   void onStraighten({
@@ -104,7 +106,30 @@ class CupertinoCroppableImageController extends CroppableImageControllerWithMixi
       baseNotifier.value = newData;
     }
   }
+  Future<void> _runSafely(VoidCallback action) async {
+    if (_commandLocked) return;
 
+    _commandLocked = true;
+    action();
+
+    // Croppy flip animation duration (safe buffer)
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    _commandLocked = false;
+  }
+  @override
+  void onMirrorHorizontal() {
+    _runSafely(() {
+      super.onMirrorHorizontal();
+    });
+  }
+
+  @override
+  void onMirrorVertical() {
+    _runSafely(() {
+      super.onMirrorVertical();
+    });
+  }
   @override
   void onPanAndScale({
     required double scaleDelta,
