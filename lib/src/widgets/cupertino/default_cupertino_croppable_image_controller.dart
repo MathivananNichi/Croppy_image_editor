@@ -11,10 +11,12 @@ class DefaultCupertinoCroppableImageController extends StatefulWidget {
     this.postProcessFn,
     this.cropShapeFn,
     this.enabledTransformations,
+    this.fixedAspect,
   });
 
   final ImageProvider imageProvider;
   final CroppableImageData? initialData;
+  final double? fixedAspect;
   final CroppableImagePostProcessFn? postProcessFn;
   final CropShapeFn? cropShapeFn;
   final List<CropAspectRatio?>? allowedAspectRatios;
@@ -51,6 +53,14 @@ class DefaultCupertinoCroppableImageControllerState
     });
   }
 
+  CropAspectRatio aspectFromDouble(double fixedAspect) {
+    const int base = 1000; // keeps precision
+    return CropAspectRatio(
+      width: (fixedAspect * base).round(),
+      height: base,
+    );
+  }
+
   Future<CupertinoCroppableImageController?> prepareController(
       {CropShapeType? type, bool fromCrop = false, CroppableImageData? initialDatas}) async {
     late final CroppableImageData initialData;
@@ -76,6 +86,10 @@ class DefaultCupertinoCroppableImageControllerState
       allowedAspectRatios: widget.allowedAspectRatios,
       enabledTransformations: widget.enabledTransformations ?? Transformation.values,
     );
+    if (widget.fixedAspect != null && !fromCrop) {
+      _controller!.currentAspectRatio = aspectFromDouble(widget.fixedAspect!);
+    }
+
     _pushUndoNode(_controller, data: initialData);
     initialiseListener(_controller!);
 

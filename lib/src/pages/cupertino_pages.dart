@@ -4,8 +4,6 @@ import 'package:croppy/src/src.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-
-
 Future<CropImageResult?> showCupertinoImageCropper(
   BuildContext context, {
   required ImageProvider imageProvider,
@@ -15,6 +13,7 @@ Future<CropImageResult?> showCupertinoImageCropper(
   List<CropAspectRatio?>? allowedAspectRatios,
   List<Transformation>? enabledTransformations,
   Object? heroTag,
+  double? fixedAspect,
   CroppyStyleModel? croppyStyleModel,
   bool shouldPopAfterCrop = true,
   Locale? locale,
@@ -32,26 +31,24 @@ Future<CropImageResult?> showCupertinoImageCropper(
       cropPathFn: cropPathFn ?? aabbCropShapeFn,
     );
   }
-var tempCrop=_initialData.cropShape.type == CropShapeType.ellipse
-    ? circleCropShapeFn
-    : (cropPathFn ?? aabbCropShapeFn);
+  var tempCrop = _initialData.cropShape.type == CropShapeType.ellipse
+      ? circleCropShapeFn
+      : (cropPathFn ?? aabbCropShapeFn);
   Widget builder(context) {
     return CroppyLocalizationProvider(
       locale: locale,
       child: DefaultCupertinoCroppableImageController(
         imageProvider: imageProvider,
         initialData: _initialData,
+        fixedAspect: fixedAspect,
         postProcessFn: postProcessFn,
         cropShapeFn: tempCrop,
         allowedAspectRatios: allowedAspectRatios,
         enabledTransformations: enabledTransformations,
-
         builder: (context, controller, state) => CupertinoImageCropperPage(
           checkKey: state,
-
           heroTag: heroTag,
-
-          croppyStyleModel:croppyStyleModel,
+          croppyStyleModel: croppyStyleModel,
           showLoadingIndicatorOnSubmit: showLoadingIndicatorOnSubmit,
           controller: controller,
           shouldPopAfterCrop: shouldPopAfterCrop,
