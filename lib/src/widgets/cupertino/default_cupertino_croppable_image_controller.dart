@@ -54,18 +54,7 @@ class DefaultCupertinoCroppableImageControllerState
       });
     });
   }
-  void applyAspect(double fixedAspect) {
-    if (fixedAspect == 1.0) {
-      _controller?.currentAspectRatio =
-      const CropAspectRatio(width: 1, height: 1);
-    } else {
-      const int base = 1000;
-      _controller?.currentAspectRatio = CropAspectRatio(
-        width: (fixedAspect * base).round(),
-        height: base,
-      );
-    }
-  }
+
   void _restoreFromUndoNode(CropUndoNode node) {
     // _controller?.onBaseTransformation(
     //   node.data.copyWith(
@@ -73,10 +62,11 @@ class DefaultCupertinoCroppableImageControllerState
     //   ),
     // );
   }
+
   CropAspectRatio? snapFromAllowedAspectRatios(
-      double fixedAspect,
-      List<CropAspectRatio?> allowedAspectRatios,
-      ) {
+    double fixedAspect,
+    List<CropAspectRatio?> allowedAspectRatios,
+  ) {
     CropAspectRatio? closest;
     double minDiff = double.infinity;
 
@@ -95,19 +85,29 @@ class DefaultCupertinoCroppableImageControllerState
     return closest;
   }
 
-  void _centerCropRect(CupertinoCroppableImageController controller) {
-    final imageSize = controller.data.imageSize;
-    final rect = controller.data.cropRect;
+  Offset quad2Center(Quad2 quad) {
+    final cx = (quad.point0.x + quad.point1.x + quad.point2.x + quad.point3.x) / 4;
 
-    final centered = Rect.fromCenter(
-      center: imageSize.center(Offset.zero),
+    final cy = (quad.point0.y + quad.point1.y + quad.point2.y + quad.point3.y) / 4;
+
+    return Offset(cx, cy);
+  }
+
+  void centerCropRect(CupertinoCroppableImageController controller) {
+    final rect = controller.data.cropRect;
+    final quad = controller.data.transformedImageQuad; // Quad2
+
+    final center = quad2Center(quad);
+
+    final centeredRect = Rect.fromCenter(
+      center: center,
       width: rect.width,
       height: rect.height,
     );
 
     controller.onBaseTransformation(
       controller.data.copyWith(
-        cropRect: centered,
+        cropRect: centeredRect,
         currentImageTransform: Matrix4.identity(),
       ),
     );
@@ -143,12 +143,11 @@ class DefaultCupertinoCroppableImageControllerState
     if (widget.fixedAspect != null && !fromCrop) {
       final snapped = snapFromAllowedAspectRatios(
         widget.fixedAspect!,
-        widget.allowedAspectRatios??[],
+        widget.allowedAspectRatios ?? [],
       );
       _controller!.currentAspectRatio = snapped;
-      applyAspect( widget.fixedAspect!);
     }
-    _centerCropRect(_controller!);
+    centerCropRect(_controller!);
     _pushUndoNode(_controller, data: initialData);
     initialiseListener(_controller!);
 
@@ -192,6 +191,7 @@ class DefaultCupertinoCroppableImageControllerState
       (_controller as AspectRatioMixin).currentAspectRatio = ratio;
     }
   }
+
   void changeAspectRatioCentered(CropAspectRatio? ratio) {
     if (_controller?.currentAspectRatio == ratio) return;
 
@@ -218,6 +218,7 @@ class DefaultCupertinoCroppableImageControllerState
     // 3️⃣ Normalize to be safe
     _controller!.normalize();
   }
+
   resetListener() {
     _controller?.dispose();
     _controller = null;
