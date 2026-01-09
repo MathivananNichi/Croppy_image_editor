@@ -78,11 +78,15 @@ class CupertinoImageCropperPage extends StatelessWidget {
                         child: RepaintBoundary(
                           child: AnimatedCroppableImageViewport(
                             controller: controller,
+                            minBackgroundOpacity: 0.25,
+                            maxBackgroundOpacity: 0.25,
                             overlayOpacityAnimation: overlayOpacityAnimation,
                             gesturePadding: gesturePadding,
                             heroTag: heroTag,
                             cropHandlesBuilder: (context) => CupertinoImageCropHandles(
                               controller: controller,
+                              handleColor: CupertinoColors.black,
+
                               gesturePadding: gesturePadding,
                               showGestureHandlesOn: showGestureHandlesOn,
                             ),

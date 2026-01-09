@@ -178,6 +178,7 @@ class DefaultCupertinoCroppableImageControllerState
       }
       (_controller as AspectRatioMixin).currentAspectRatio = ratio;
     }
+    // centerCropCorrectly(_controller!);
   }
 
   applyFreeCrop(CropAspectRatio? ratio) {
@@ -193,6 +194,33 @@ class DefaultCupertinoCroppableImageControllerState
     _controller?.removeListener(_onControllerChanged);
     _controller?.aspectRatioNotifier.removeListener(_onAspectRatioChanged);
   }
+  void centerCropCorrectly(CupertinoCroppableImageController controller) {
+    final data = controller.data;
+
+    // Image-space center (this is correct)
+    final imageCenter = Offset(
+      data.imageSize.width / 2,
+      data.imageSize.height / 2,
+    );
+
+    final rect = data.cropRect;
+
+    // Compute delta in IMAGE SPACE
+    final delta = imageCenter - rect.center;
+
+    // Shift rect instead of recreating it
+    final centeredRect = rect.shift(delta);
+
+    controller.onBaseTransformation(
+      data.copyWith(
+        cropRect: centeredRect,
+        currentImageTransform: Matrix4.identity(),
+      ),
+    );
+
+    controller.normalize();
+  }
+
 
   initialiseListener(CupertinoCroppableImageController controller) {
     // initialize guards FIRST
@@ -209,6 +237,7 @@ class DefaultCupertinoCroppableImageControllerState
     _pushUndoNode(
       _controller,
     );
+
   }
 
   void _onControllerChanged() {

@@ -101,10 +101,37 @@ class CupertinoCroppableImageController extends CroppableImageControllerWithMixi
   void onBaseTransformation(CroppableImageData newData) {
     super.onBaseTransformation(newData);
 
-    // Aspect ratio & non-gesture changes
-    if (!isTransforming) {
-      baseNotifier.value = newData;
-    }
+    // // Aspect ratio & non-gesture changes
+    // if (!isTransforming) {
+    //   baseNotifier.value = newData;
+    // }
+
+    // ⛔ If an aspect ratio is active, Croppy may re-run corrections
+    if (currentAspectRatio == null) return;
+
+    final data = this.data;
+
+    // Image-space center
+    final imageCenter = Offset(
+      data.imageSize.width / 2,
+      data.imageSize.height / 2,
+    );
+
+    final rect = data.cropRect;
+
+    // Shift rect (IMAGE SPACE)
+    final delta = imageCenter - rect.center;
+    if (delta == Offset.zero) return;
+
+    final centeredRect = rect.shift(delta);
+
+    // 🔥 THIS is the final committed state
+    super.onBaseTransformation(
+      data.copyWith(
+        cropRect: centeredRect,
+        currentImageTransform: Matrix4.identity(),
+      ),
+    );
   }
   Future<void> _runSafely(VoidCallback action) async {
     if (_commandLocked) return;

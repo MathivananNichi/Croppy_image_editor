@@ -104,7 +104,9 @@ class _CupertinoImageRectCropHandlesPainter extends CustomPainter {
     // Draw the rectangle
     canvas.drawRect(Offset.zero & size, rectPaint);
 
-    const handleThickness = 2.0;
+    const handleThickness = 4.0;
+   const double handleWidth=30;
+    const double handleTopBottomWidth=20;
     final handlePaint = Paint()
       ..color = color
       ..strokeWidth = handleThickness
@@ -112,47 +114,47 @@ class _CupertinoImageRectCropHandlesPainter extends CustomPainter {
 
     // Draw the edge handles
     canvas.drawLine(
-      Offset(-handleThickness / 2, size.height / 2 - 15.0),
-      Offset(-handleThickness / 2, size.height / 2 + 15.0),
+      Offset(-handleThickness / 2, size.height / 2 - handleTopBottomWidth),
+      Offset(-handleThickness / 2, size.height / 2 + handleTopBottomWidth),
       handlePaint,
     );
 
     canvas.drawLine(
-      Offset(size.width + handleThickness / 2, size.height / 2 - 15.0),
-      Offset(size.width + handleThickness / 2, size.height / 2 + 15.0),
+      Offset(size.width + handleThickness / 2, size.height / 2 - handleTopBottomWidth),
+      Offset(size.width + handleThickness / 2, size.height / 2 + handleTopBottomWidth),
       handlePaint,
     );
 
     canvas.drawLine(
-      Offset(size.width / 2 - 15.0, -handleThickness / 2),
-      Offset(size.width / 2 + 15.0, -handleThickness / 2),
+      Offset(size.width / 2 - handleTopBottomWidth, -handleThickness / 2),
+      Offset(size.width / 2 +handleTopBottomWidth, -handleThickness / 2),
       handlePaint,
     );
 
     canvas.drawLine(
-      Offset(size.width / 2 - 15.0, size.height + handleThickness / 2),
-      Offset(size.width / 2 + 15.0, size.height + handleThickness / 2),
+      Offset(size.width / 2 -handleTopBottomWidth, size.height + handleThickness / 2),
+      Offset(size.width / 2 + handleTopBottomWidth, size.height + handleThickness / 2),
       handlePaint,
     );
 
     // Draw the corner handles
     final path = Path();
-    path.moveTo(-handleThickness / 2, 15.0);
+    path.moveTo(-handleThickness / 2, handleWidth);
     path.lineTo(-handleThickness / 2, -handleThickness / 2);
-    path.lineTo(15.0, -handleThickness / 2);
+    path.lineTo(handleWidth, -handleThickness / 2);
 
-    path.moveTo(size.width + handleThickness / 2, 15.0);
+    path.moveTo(size.width + (handleThickness) / 2, handleWidth);
     path.lineTo(size.width + handleThickness / 2, -handleThickness / 2);
-    path.lineTo(size.width - 15.0, -handleThickness / 2);
+    path.lineTo(size.width - handleWidth, -handleThickness / 2);
 
-    path.moveTo(-handleThickness / 2, size.height - 15.0);
+    path.moveTo(-handleThickness / 2, size.height - handleWidth);
     path.lineTo(-handleThickness / 2, size.height + handleThickness / 2);
-    path.lineTo(15.0, size.height + handleThickness / 2);
+    path.lineTo(handleWidth, size.height + handleThickness / 2);
 
-    path.moveTo(size.width + handleThickness / 2, size.height - 15.0);
+    path.moveTo(size.width + handleThickness / 2, size.height - handleWidth);
     path.lineTo(
         size.width + handleThickness / 2, size.height + handleThickness / 2);
-    path.lineTo(size.width - 15.0, size.height + handleThickness / 2);
+    path.lineTo(size.width - handleWidth, size.height + handleThickness / 2);
 
     canvas.drawPath(path, handlePaint);
   }
