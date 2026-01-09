@@ -71,7 +71,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late final PageController _pageController;
 
-
   @override
   void initState() {
     super.initState();
@@ -125,9 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         actions: [
           IconButton(
-            onPressed: () async {
-
-            },
+            onPressed: () async {},
             icon: const Icon(Icons.settings),
           ),
         ],
@@ -147,11 +144,43 @@ class _MyHomePageState extends State<MyHomePage> {
               showCupertinoImageCropper(
                 context,
                 imageProvider: _imageProviders[page],
+                fixedAspect: _data[page] == null ? 1.0 : null,
+                allowedAspectRatios: [
+                  CropAspectRatio(width: 1, height: 1),
+                  CropAspectRatio(width: 16, height: 9),
+                  CropAspectRatio(width: 9, height: 16),
+                  CropAspectRatio(width: 4, height: 3),
+                  CropAspectRatio(width: 3, height: 4),
+                ],
                 croppyStyleModel: CroppyStyleModel(
-                    backGroundColor: Color(0xFFE4F9FC), bottomIconColor: Color(0xFF12BCD4)),
+                    // appbar: (contrller,state){
+                    //   return AppBar(
+                    //     actions: [
+                    //       IconButton(onPressed: (){}, icon: Icon(Icons.undo)),
+                    //       IconButton(onPressed: (){}, icon: Icon(Icons.undo))
+                    //     ],
+                    //   );
+                    // },
+                    appbar: (controller, state) {
+                      return AppBar(
+                        actions: [
+                          IconButton(
+                              onPressed: () {
+                                state.undo();
+                              },
+                              icon: Icon(Icons.undo)),
+                          IconButton(
+                              onPressed: () {
+                                state.redo();
+                              },
+                              icon: Icon(Icons.redo))
+                        ],
+                      );
+                    },
+                    backGroundColor: Colors.white,
+                    bottomIconColor: Color(0xFF12BCD4)),
                 heroTag: 'image-$page',
                 initialData: _data[page],
-
                 showLoadingIndicatorOnSubmit: false,
                 postProcessFn: (result) async {
                   _croppedImage[page]?.dispose();
