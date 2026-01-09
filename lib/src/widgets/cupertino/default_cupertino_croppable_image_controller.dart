@@ -133,11 +133,11 @@ class DefaultCupertinoCroppableImageControllerState
         widget.fixedAspect!,
         widget.allowedAspectRatios ?? [],
       );
-      log("--------${snapped}");
+
       Future.delayed(const Duration(milliseconds: 100)).then((_) {
         // applyAspectRatioCentered(snapped);
-        log("----${snapped}");
-        _controller!.currentAspectRatio = snapped;
+
+        (_controller as AspectRatioMixin).currentAspectRatio = snapped;
       });
     }
 
@@ -178,7 +178,6 @@ class DefaultCupertinoCroppableImageControllerState
   }
 
   applyFreeCrop(CropAspectRatio? ratio) {
-
     (_controller as AspectRatioMixin).currentAspectRatio = _controller?.allowedAspectRatios.first;
     Future.delayed(const Duration(milliseconds: 200)).then((_) {
       (_controller as AspectRatioMixin).currentAspectRatio = ratio;
