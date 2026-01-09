@@ -136,6 +136,7 @@ class DefaultCupertinoCroppableImageControllerState
       log("--------${snapped}");
       Future.delayed(const Duration(milliseconds: 100)).then((_) {
         // applyAspectRatioCentered(snapped);
+        log("----${snapped}");
         _controller!.currentAspectRatio = snapped;
       });
     }
