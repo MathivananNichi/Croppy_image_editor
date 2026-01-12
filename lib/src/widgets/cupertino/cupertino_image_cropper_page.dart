@@ -23,7 +23,7 @@ class CupertinoImageCropperPage extends StatelessWidget {
     _croppyStyleModel = croppyStyleModel ?? CroppyStyleModel();
   }
 
-  final CroppableImageController controller;
+  final CupertinoCroppableImageController controller;
   final double gesturePadding;
   final Object? heroTag;
   final DefaultCupertinoCroppableImageControllerState checkKey;
@@ -36,11 +36,8 @@ class CupertinoImageCropperPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-
     return Theme(
-      data: Theme.of(context)
-          .copyWith(scaffoldBackgroundColor: _croppyStyleModel.backGroundColor),
+      data: Theme.of(context).copyWith(scaffoldBackgroundColor: _croppyStyleModel.backGroundColor),
       child: Scaffold(
         backgroundColor: _croppyStyleModel.backGroundColor,
         appBar: _croppyStyleModel.appbar == null
@@ -51,7 +48,7 @@ class CupertinoImageCropperPage extends StatelessWidget {
             : _croppyStyleModel.bottomNavigationBar!(controller, checkKey),
         body: AnnotatedRegion<SystemUiOverlayStyle>(
           value: SystemUiOverlayStyle(
-            systemNavigationBarColor: _croppyStyleModel.backGroundColor ,
+            systemNavigationBarColor: _croppyStyleModel.backGroundColor,
             statusBarBrightness: Brightness.dark,
             statusBarColor: _croppyStyleModel.backGroundColor,
             statusBarIconBrightness: Brightness.dark,
@@ -86,7 +83,6 @@ class CupertinoImageCropperPage extends StatelessWidget {
                             cropHandlesBuilder: (context) => CupertinoImageCropHandles(
                               controller: controller,
                               handleColor: CupertinoColors.black,
-
                               gesturePadding: gesturePadding,
                               showGestureHandlesOn: showGestureHandlesOn,
                             ),
@@ -128,68 +124,273 @@ class CupertinoImageCropperPage extends StatelessWidget {
     );
   }
 
-Widget _bottomNavigationBar(BuildContext context) {
-  return Container(
-    color: _croppyStyleModel.backGroundColor,
-    child: Row(
-      spacing: 12,
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        IconWithName(
-          onPressed: () async {
-            // final CroppableImageData initialData = await CroppableImageData.fromImageProvider(
-            //   controller.res,
-            //   cropPathFn: ellipseCropShapeFn,
-            // );
-            // controller.CahnageShaoe(initialData);
+  Widget _bottomNavigationBar(BuildContext context) {
+    return Container(
+      color: _croppyStyleModel.backGroundColor,
+      child: Row(
+        spacing: 12,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          IconWithName(
+            onPressed: () async {
+              // final CroppableImageData initialData = await CroppableImageData.fromImageProvider(
+              //   controller.res,
+              //   cropPathFn: ellipseCropShapeFn,
+              // );
+              // controller.CahnageShaoe(initialData);
 
-            // checkKey.currentState!.changeShape();
-            // controller.cropShapeFn=CropShape();
-            // controller.onBaseTransformation(
-            //     initialData.copyWithProperCropShape(cropShapeFn: ellipseCropShapeFn));
-            showCropOptions(context);
+              // checkKey.currentState!.changeShape();
+              // controller.cropShapeFn=CropShape();
+              // controller.onBaseTransformation(
+              //     initialData.copyWithProperCropShape(cropShapeFn: ellipseCropShapeFn));
+              showCropOptions(context);
+            },
+            title: "Cropper",
+            child: const Icon(
+              Icons.crop,
+              color: Colors.black,
+            ),
+          ),
+          IconWithName(
+              onPressed: () {
+                _showRotateOptions(
+                    controllerState: checkKey, controller: controller, context: context);
+              },
+              title: "Rotate",
+              child: const Icon(Icons.rotate_90_degrees_ccw, color: Colors.black)),
+          IconWithName(
+              onPressed: controller.onMirrorHorizontal,
+              title: "Flip",
+              child: const Icon(Icons.flip, color: Colors.black)),
+          IconWithName(
+              onPressed: controller.onMirrorVertical,
+              title: "Flip",
+              child: Transform.rotate(
+                angle: pi / 2,
+                child: const Icon(Icons.flip, color: Colors.black),
+              )),
+        ],
+      ),
+    );
+  }
+
+  Future<void> showCropOptions(BuildContext context) async {
+    await showModalBottomSheet<Object?>(
+      context: context,
+      clipBehavior: Clip.antiAlias,
+      backgroundColor: _croppyStyleModel.backGroundColor,
+      builder: (_) {
+        return AspectRatioSelectionBottomSheet(
+          controller: controller as AspectRatioMixin,
+          onCircleTap: (val, isElipse) {
+            checkKey.changeAspectRatio(ratio: val, shapeType: isElipse);
           },
-          title: "Cropper",
-          child: const Icon(
-            Icons.crop,
-            color: Colors.black,
+        );
+      },
+    );
+  }
+
+  void _showRotateOptions(
+      {required CupertinoCroppableImageController controller,
+      required DefaultCupertinoCroppableImageControllerState controllerState,
+      required BuildContext context}) {
+    double currentRotation = 0.0;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: _croppyStyleModel.backGroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return SafeArea(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text("Rotate", style: textStyle16()),
+                    const SizedBox(height: 16),
+
+                    // Slider for custom angle rotation
+                    _rotationSlider(
+                      initialValue: currentRotation,
+                      onChanged: (double value) {
+                        setModalState(() {
+                          currentRotation = value;
+                        });
+                      },
+                      context: context,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Apply custom rotation button
+                    if (currentRotation != 0)
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          onPressed: () {
+
+
+                            checkKey.applyRotationFromUI(controller!,currentRotation);
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            'Apply ${currentRotation.toStringAsFixed(1)}°',
+                            style: textStyleWhite14(),
+                          ),
+                        ),
+                      ),
+
+                    if (currentRotation != 0) const SizedBox(height: 16),
+
+                    const Divider(),
+                    const SizedBox(height: 8),
+
+                    // 90° rotation options
+                    Text(
+                      "Quick roatet",
+                      style: textStyle12().copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 9),
+
+                    buildRotateOption(
+                      context,
+                      controller,
+                      controllerState,
+                      "Ninty Left",
+                      Icons.rotate_90_degrees_ccw,
+                      () {
+                        controller.onRotateACW();
+                        // editor.rotate();
+                        Navigator.pop(context);
+                      },
+                    ),
+
+                    buildRotateOption(
+                      context,
+                      controller,
+                      controllerState,
+                      "Ninty Right",
+                      Icons.rotate_90_degrees_cw,
+                      () {
+                        controller.onRotateCCW();
+                        // editor.rotate();
+                        // editor.rotate();
+                        // editor.rotate();
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget buildRotateOption(
+    BuildContext context,
+    CroppableImageController controller,
+    DefaultCupertinoCroppableImageControllerState controllerState,
+    String label,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(
+          vertical: 12,
+          horizontal: 8,
+        ),
+        child: Row(
+          children: <Widget>[
+            Icon(
+              icon,
+              size: 24,
+              color: Colors.black,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: textStyle12(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _rotationSlider({
+    required double initialValue,
+    required BuildContext context,
+    required void Function(double) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(
+              "Custom Angle",
+              style: textStyle12().copyWith(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SliderTheme(
+          data: SliderThemeData(
+            activeTrackColor: Colors.blue,
+            inactiveTrackColor: Colors.grey,
+            thumbColor: Colors.blue,
+            overlayColor: Colors.blue,
+            valueIndicatorColor: Colors.blue,
+            valueIndicatorTextStyle: textStyleWhite12(),
+          ),
+          child: Slider(
+            value: initialValue,
+            min: -90,
+            max: 90,
+            divisions: 90,
+            label: '${initialValue.round()}°',
+            onChanged: onChanged,
           ),
         ),
-        IconWithName(
-            onPressed: controller.onRotateCCW,
-            title: "Rotate",
-            child: const Icon(Icons.rotate_90_degrees_ccw, color: Colors.black)),
-        IconWithName(
-            onPressed: controller.onMirrorHorizontal,
-            title: "Flip",
-            child: const Icon(Icons.flip, color: Colors.black)),
-        IconWithName(
-            onPressed: controller.onMirrorVertical,
-            title: "Flip",
-            child: Transform.rotate(
-              angle: pi / 2,
-              child: const Icon(Icons.flip, color: Colors.black),
-            )),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text('-90°', style: textStyle12()),
+              Text('0°', style: textStyle12()),
+              Text('+90°', style: textStyle12()),
+            ],
+          ),
+        ),
       ],
-    ),
-  );
+    );
+  }
 }
 
-Future<void> showCropOptions(BuildContext context) async {
-  await showModalBottomSheet<Object?>(
-    context: context,
-    clipBehavior: Clip.antiAlias,
-    backgroundColor: _croppyStyleModel.backGroundColor,
-    builder: (_) {
-      return AspectRatioSelectionBottomSheet(
-        controller: controller as AspectRatioMixin,
-        onCircleTap: (val, isElipse) {
-          checkKey.changeAspectRatio(ratio: val, shapeType: isElipse);
-        },
-      );
-    },
-  );
-}
+TextStyle? textStyle16() {
+  return TextStyle(fontSize: 12, color: Colors.black12, fontWeight: FontWeight.w400);
 }
 
 class IconWithName extends StatelessWidget {
@@ -292,3 +493,15 @@ class AspectRatioSelectionBottomSheet extends StatelessWidget {
     );
   }
 }
+
+TextStyle textStyleWhite14() =>
+    const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white);
+
+TextStyle textStyle12Grey() => const TextStyle(fontSize: 12, color: Colors.grey);
+
+TextStyle textStyle12() =>
+    const TextStyle(fontSize: 12, color: Colors.black, fontWeight: FontWeight.w400);
+
+/// Custom textStyleWhite12
+TextStyle textStyleWhite12() =>
+    const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w600);

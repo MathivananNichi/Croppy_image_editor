@@ -126,6 +126,7 @@ abstract class BaseCroppableImageController extends ChangeNotifier {
     transformationInitialData = data.copyWith();
     isTransformingNotifier.value = true;
     notifyListeners();
+
   }
 
   dynamic lastTransformationArgs;
@@ -206,10 +207,7 @@ abstract class BaseCroppableImageController extends ChangeNotifier {
     data = _resetData;
     notifyListeners();
   }
-  void resetProcess(CroppableImageData resetDatas) {
-    data = resetDatas;
-    notifyListeners();
-  }
+
   /// Resets the controller to its initial state.
   void CahnageShaoe(CroppableImageData newData) {
     data = newData;
@@ -221,6 +219,7 @@ abstract class BaseCroppableImageController extends ChangeNotifier {
   void recomputeValueNotifiers() {
     canResetNotifier.value = data != _resetData;
     isChangedNotifier.value = data != _initialData;
+
   }
 
   /// Crops the image and returns the cropped image as a [Uint8List].

@@ -10,7 +10,6 @@ class CupertinoCroppableImageController extends CroppableImageControllerWithMixi
   CupertinoCroppableImageController({
     required TickerProvider vsync,
     required super.data,
-    this.onRotateCommitted,
     required super.imageProvider,
     super.postProcessFn,
     super.cropShapeFn,
@@ -25,7 +24,6 @@ class CupertinoCroppableImageController extends CroppableImageControllerWithMixi
   /// Allowed aspect ratios for the aspect ratio toolbar.
   @override
   final List<CropAspectRatio?> allowedAspectRatios;
-  VoidCallback? onRotateCommitted;
 
   /// Whether the guide lines are visible.
   final guideLinesVisibility = ValueNotifier<bool>(false);
@@ -40,6 +38,7 @@ class CupertinoCroppableImageController extends CroppableImageControllerWithMixi
   void onStraighten({
     required double angleRad,
   }) {
+
     if (isRotatingZ) {
       super.onStraighten(angleRad: angleRad);
 
@@ -53,8 +52,6 @@ class CupertinoCroppableImageController extends CroppableImageControllerWithMixi
         },
       );
     }
-// 🔥 ROTATION FINISHED
-    onRotateCommitted?.call();
   }
 
   @override
@@ -64,14 +61,14 @@ class CupertinoCroppableImageController extends CroppableImageControllerWithMixi
     log("-onRotateX");
     if (isRotatingX) {
       super.onRotateX(angleRad: angleRad);
-      onRotateCommitted?.call();
+
       normalize();
       setViewportScale();
     } else {
       animatedNormalizeAfterTransform(
         () {
           super.onRotateX(angleRad: angleRad);
-          onRotateCommitted?.call();
+
           normalize();
         },
       );
@@ -97,18 +94,28 @@ class CupertinoCroppableImageController extends CroppableImageControllerWithMixi
     }
   }
 
-  @override
-  void onBaseTransformation(CroppableImageData newData) {
-    super.onBaseTransformation(newData);
+  // @override
+  // void onBaseTransformation(CroppableImageData newData) {
+  //   super.onBaseTransformation(newData);
+  //
+  //   // // Aspect ratio & non-gesture changes
+  //   // if (!isTransforming) {
+  //   //   baseNotifier.value = newData;
+  //   // }
+  //
+  //   // ⛔ If an aspect ratio is active, Croppy may re-run corrections
+  //   if (currentAspectRatio == null) return;
+  //
+  //   // 🔥 THIS is the final committed state
+  //   // super.onBaseTransformation(
+  //   //   data.copyWith(
+  //   //     cropRect: centeredRect,
+  //   //     currentImageTransform: Matrix4.identity(),
+  //   //   ),
+  //   // );
+  // }
 
-    // // Aspect ratio & non-gesture changes
-    // if (!isTransforming) {
-    //   baseNotifier.value = newData;
-    // }
-
-    // ⛔ If an aspect ratio is active, Croppy may re-run corrections
-    if (currentAspectRatio == null) return;
-
+  Rect getCenterRect() {
     final data = this.data;
 
     // Image-space center
@@ -121,18 +128,11 @@ class CupertinoCroppableImageController extends CroppableImageControllerWithMixi
 
     // Shift rect (IMAGE SPACE)
     final delta = imageCenter - rect.center;
-    if (delta == Offset.zero) return;
 
     final centeredRect = rect.shift(delta);
-
-    // 🔥 THIS is the final committed state
-    super.onBaseTransformation(
-      data.copyWith(
-        cropRect: centeredRect,
-        currentImageTransform: Matrix4.identity(),
-      ),
-    );
+    return centeredRect;
   }
+
   Future<void> _runSafely(VoidCallback action) async {
     if (_commandLocked) return;
 
@@ -144,6 +144,7 @@ class CupertinoCroppableImageController extends CroppableImageControllerWithMixi
 
     _commandLocked = false;
   }
+
   @override
   void onMirrorHorizontal() {
     _runSafely(() {
@@ -157,6 +158,7 @@ class CupertinoCroppableImageController extends CroppableImageControllerWithMixi
       super.onMirrorVertical();
     });
   }
+
   @override
   void onPanAndScale({
     required double scaleDelta,

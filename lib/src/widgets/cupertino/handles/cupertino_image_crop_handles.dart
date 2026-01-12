@@ -40,7 +40,7 @@ class CupertinoImageCropHandles extends StatelessWidget {
     );
 
     final cropShape = controller.data.cropShape;
-    // print("fffffff  ${controller.data.cropShape}");
+
 
     Widget child = Stack(
       fit: StackFit.passthrough,
@@ -180,7 +180,7 @@ class _CupertinoImageCustomCropHandlesPainter extends CustomPainter {
     final pathPaint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
+      ..strokeWidth = 2;
 
     // Draw the path
     canvas.drawPath(cropPath.toUiPath(), pathPaint);

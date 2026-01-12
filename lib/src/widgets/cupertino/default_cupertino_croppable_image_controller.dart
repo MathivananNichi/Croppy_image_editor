@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:math' as math;
+import 'dart:math';
 
 import 'package:croppy/src/src.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +45,7 @@ class DefaultCupertinoCroppableImageControllerState
   final ValueNotifier<UndoRedoState> undoRedoNotifier =
       ValueNotifier(const UndoRedoState(canUndo: false, canRedo: false));
   CropShapeType _currentShape = CropShapeType.aabb;
+  double _lastUiRotationDeg = 0.0;
 
   @override
   void initState() {
@@ -53,13 +55,17 @@ class DefaultCupertinoCroppableImageControllerState
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _resetData = val!.data.copyWith();
         if (widget.fixedAspect != null) {
-          Future.delayed(const Duration(milliseconds: 500)).then((_) {
+          Future.delayed(const Duration(milliseconds: 200)).then((_) {
             // applyAspectRatioCentered(snapped);
             final snapped = snapFromAllowedAspectRatios(
               widget.fixedAspect!,
               widget.allowedAspectRatios ?? [],
             );
             changeAspectRatio(ratio: snapped);
+            Future.delayed(const Duration(milliseconds: 100)).then((_) {
+              _undoStack.removeLast();
+              _makeItCenter();
+            });
           });
         }
         setState(() {});
@@ -70,6 +76,13 @@ class DefaultCupertinoCroppableImageControllerState
   void _restoreFromUndoNode(CropUndoNode node) {
     _controller?.onBaseTransformation(
       node.data.copyWith(),
+    );
+  }
+
+  void _makeItCenter() {
+    var currentRect = _controller?.getCenterRect();
+    _controller?.onBaseTransformation(
+      _controller!.data.copyWith(cropRect: currentRect),
     );
   }
 
@@ -95,14 +108,6 @@ class DefaultCupertinoCroppableImageControllerState
     return closest;
   }
 
-  Offset quad2Center(Quad2 quad) {
-    final cx = (quad.point0.x + quad.point1.x + quad.point2.x + quad.point3.x) / 4;
-
-    final cy = (quad.point0.y + quad.point1.y + quad.point2.y + quad.point3.y) / 4;
-
-    return Offset(cx, cy);
-  }
-
   Future<CupertinoCroppableImageController?> prepareController(
       {CropShapeType? type,
       bool fromCrop = false,
@@ -112,10 +117,8 @@ class DefaultCupertinoCroppableImageControllerState
     var tempCrop =
         (type == CropShapeType.aabb || type == null) ? aabbCropShapeFn : circleCropShapeFn;
     if (initialDatas != null && !fromCrop) {
-      log("aaaa using old data ${initialDatas}");
       initialData = initialDatas!;
     } else {
-      log("aaaa using new  data");
       initialData = await CroppableImageData.fromImageProvider(
         widget.imageProvider,
         cropPathFn: tempCrop,
@@ -194,33 +197,23 @@ class DefaultCupertinoCroppableImageControllerState
     _controller?.removeListener(_onControllerChanged);
     _controller?.aspectRatioNotifier.removeListener(_onAspectRatioChanged);
   }
-  void centerCropCorrectly(CupertinoCroppableImageController controller) {
-    final data = controller.data;
 
-    // Image-space center (this is correct)
-    final imageCenter = Offset(
-      data.imageSize.width / 2,
-      data.imageSize.height / 2,
-    );
+  double radToDeg(double rad) => rad * 180 / pi;
 
-    final rect = data.cropRect;
+  double degToRad(double deg) => deg * pi / 180;
 
-    // Compute delta in IMAGE SPACE
-    final delta = imageCenter - rect.center;
-
-    // Shift rect instead of recreating it
-    final centeredRect = rect.shift(delta);
-
-    controller.onBaseTransformation(
-      data.copyWith(
-        cropRect: centeredRect,
-        currentImageTransform: Matrix4.identity(),
-      ),
-    );
-
-    controller.normalize();
+  double clampDeg(double deg) {
+    return deg.clamp(-90.0, 90.0);
   }
 
+  void applyRotationFromUI(
+    CupertinoCroppableImageController controller,
+    double degrees, // -90 to +90
+  ) {
+    controller.onRotateByAngle(
+      angleRad: degrees,
+    );
+  }
 
   initialiseListener(CupertinoCroppableImageController controller) {
     // initialize guards FIRST
@@ -231,13 +224,16 @@ class DefaultCupertinoCroppableImageControllerState
       _pushUndoNode(_controller, data: controller.baseNotifier.value);
     });
     controller.aspectRatioNotifier.addListener(_onAspectRatioChanged);
+
+    controller.dataChangedNotifier.addListener(() {
+      _pushUndoNode(controller);
+    });
   }
 
   void _onAspectRatioChanged() {
     _pushUndoNode(
       _controller,
     );
-
   }
 
   void _onControllerChanged() {
@@ -266,6 +262,7 @@ class DefaultCupertinoCroppableImageControllerState
 
   void _pushUndoNode(CupertinoCroppableImageController? controller, {CroppableImageData? data}) {
     if (_controller == null) return;
+
     //
     // if (_undoStack.isNotEmpty &&
     //     _undoStack.last.data == _controller!.data &&
@@ -281,7 +278,7 @@ class DefaultCupertinoCroppableImageControllerState
     );
 
     _redoStack.clear();
-    log("uuuuuuuu  ${_undoStack.length}");
+
     _updateUndoRedoNotifier();
   }
 
@@ -365,7 +362,7 @@ class DefaultCupertinoCroppableImageControllerState
     if (_controller == null) {
       return const SizedBox.shrink();
     }
-    log("aaaaaaaaaa--${_controller?.currentAspectRatio}");
+
     return widget.builder(context, _controller!, this);
   }
 }
