@@ -248,7 +248,7 @@ class CupertinoImageCropperPage extends StatelessWidget {
                           },
                           child: Text(
                             'Apply ${currentRotation.toStringAsFixed(1)}°',
-                            style: textStyleWhite14(),
+                            style: textStyleCroppyWhite14(),
                           ),
                         ),
                       ),
@@ -261,7 +261,7 @@ class CupertinoImageCropperPage extends StatelessWidget {
                     // 90° rotation options
                     Text(
                       "Quick roatet",
-                      style: textStyle12().copyWith(fontWeight: FontWeight.w600),
+                      style: textStyleCroppy12().copyWith(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 9),
 
@@ -329,7 +329,7 @@ class CupertinoImageCropperPage extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               label,
-              style: textStyle12(),
+              style: textStyleCroppy12(),
             ),
           ],
         ),
@@ -350,7 +350,7 @@ class CupertinoImageCropperPage extends StatelessWidget {
           children: <Widget>[
             Text(
               "Custom Angle",
-              style: textStyle12().copyWith(fontWeight: FontWeight.w600),
+              style: textStyleCroppy12().copyWith(fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -362,7 +362,7 @@ class CupertinoImageCropperPage extends StatelessWidget {
             thumbColor: Colors.blue,
             overlayColor: Colors.blue,
             valueIndicatorColor: Colors.blue,
-            valueIndicatorTextStyle: textStyleWhite12(),
+            valueIndicatorTextStyle: textStyleCroppyWhite12(),
           ),
           child: Slider(
             value: initialValue,
@@ -378,9 +378,9 @@ class CupertinoImageCropperPage extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text('-90°', style: textStyle12()),
-              Text('0°', style: textStyle12()),
-              Text('+90°', style: textStyle12()),
+              Text('-90°', style: textStyleCroppy12()),
+              Text('0°', style: textStyleCroppy12()),
+              Text('+90°', style: textStyleCroppy12()),
             ],
           ),
         ),
@@ -494,14 +494,14 @@ class AspectRatioSelectionBottomSheet extends StatelessWidget {
   }
 }
 
-TextStyle textStyleWhite14() =>
+TextStyle textStyleCroppyWhite14() =>
     const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white);
 
-TextStyle textStyle12Grey() => const TextStyle(fontSize: 12, color: Colors.grey);
+TextStyle textStyleCroppy12Grey() => const TextStyle(fontSize: 12, color: Colors.grey);
 
-TextStyle textStyle12() =>
+TextStyle textStyleCroppy12() =>
     const TextStyle(fontSize: 12, color: Colors.black, fontWeight: FontWeight.w400);
 
 /// Custom textStyleWhite12
-TextStyle textStyleWhite12() =>
+TextStyle textStyleCroppyWhite12() =>
     const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w600);
