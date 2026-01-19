@@ -294,7 +294,7 @@ class DefaultCupertinoCroppableImageControllerState
     _controller = CupertinoCroppableImageController(
       vsync: this,
       imageProvider: widget.imageProvider,
-      data: isLastUndo ? widget.initialData!.copyWith() : previous.data.copyWith(),
+      data:  previous.data.copyWith(),
       cropShapeFn: previous.data.cropShape.type == CropShapeType.ellipse
           ? circleCropShapeFn
           : aabbCropShapeFn,
@@ -306,15 +306,16 @@ class DefaultCupertinoCroppableImageControllerState
     _restoreFromUndoNode(previous);
     initialiseListener(_controller!);
     _updateUndoRedoNotifier();
-    if (isLastUndo) {
-      Future.delayed(Duration(milliseconds: 300)).then((_) {
-        callDefault();
-      });
-    }
+    // if (isLastUndo) {
+    //   Future.delayed(Duration(milliseconds: 300)).then((_) {
+    //     callDefault();
+    //   });
+    // }
     setState(() {});
   }
 
   resetDateWithInitializecontroller({bool isUndoReset = false}) {
+
     _undoStack.clear();
     _redoStack.clear();
 
