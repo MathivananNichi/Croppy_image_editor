@@ -384,7 +384,7 @@ class DefaultCupertinoCroppableImageControllerState
           widget.fixedAspect!,
           widget.allowedAspectRatios ?? [],
         );
-        (_controller as AspectRatioMixin).currentAspectRatio = CropAspectRatio(width: 3, height: 4);
+        (_controller as AspectRatioMixin).currentAspectRatio = snapped;
         Future.delayed(const Duration(milliseconds: 200)).then((_) {
           _undoStack.removeLast();
           _updateUndoRedoNotifier();
