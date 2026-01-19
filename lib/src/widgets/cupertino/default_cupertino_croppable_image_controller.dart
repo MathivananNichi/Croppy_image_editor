@@ -66,6 +66,11 @@ class DefaultCupertinoCroppableImageControllerState
     _controller?.onBaseTransformation(
       _controller!.data.copyWith(cropRect: currentRect),
     );
+    Future.delayed(const Duration(milliseconds: 500)).then((_) {
+      _undoStack.removeLast();
+      _pushUndoNode(_controller);
+      _updateUndoRedoNotifier();
+    });
   }
 
   CropAspectRatio? snapFromAllowedAspectRatios(
@@ -107,7 +112,6 @@ class DefaultCupertinoCroppableImageControllerState
         widget.imageProvider,
         cropPathFn: tempCrop,
       );
-      if (widget.initialData != null) {}
     }
 
     final preservedData = isReset
@@ -132,7 +136,7 @@ class DefaultCupertinoCroppableImageControllerState
     );
 
     if (fromCrop == false) {
-      _pushUndoNode(_controller, data: initialData);
+      _pushUndoNode(_controller);
     }
     initialiseListener(_controller!);
 
@@ -157,14 +161,14 @@ class DefaultCupertinoCroppableImageControllerState
           applyFreeCrop(ratio);
           return;
         }
-        (_controller as AspectRatioMixin).currentAspectRatio =
-            ratio ?? _controller?.allowedAspectRatios.first;
+        (_controller as AspectRatioMixin).currentAspectRatio = ratio;
       });
     } else {
       if (ratio == null) {
         applyFreeCrop(ratio);
         return;
       }
+      log("Ratio called ${ratio}");
       (_controller as AspectRatioMixin).currentAspectRatio = ratio;
     }
     // centerCropCorrectly(_controller!);
@@ -197,13 +201,18 @@ class DefaultCupertinoCroppableImageControllerState
     controller.addListener(_onControllerChanged);
     controller.baseNotifier.addListener(() {
       log("----Base Notifier");
-      _pushUndoNode(_controller, data: controller.baseNotifier.value);
+      _pushUndoNode(
+        controller,
+      );
     });
     controller.aspectRatioNotifier.addListener(_onAspectRatioChanged);
 
     controller.dataChangedNotifier.addListener(() {
       log("----data change Notifier");
       _pushUndoNode(controller);
+      Future.delayed(Duration(milliseconds: 300)).then((_) {
+        _makeItCenter();
+      });
     });
     controller.mirrorDataChangedNotifier.addListener(() {
       log("----mirror change Notifier");
@@ -213,13 +222,9 @@ class DefaultCupertinoCroppableImageControllerState
   }
 
   void _onAspectRatioChanged() {
-    log("----AspectRatio Notifier");
-    _pushUndoNode(
-      _controller,
-    );
-    Future.delayed(Duration(milliseconds: 500)).then((_) {
+    Future.delayed(Duration(milliseconds: 300)).then((_) {
       // _undoStack.removeLast();
-      _updateUndoRedoNotifier();
+      _pushUndoNode(_controller);
       _makeItCenter();
     });
   }
@@ -249,7 +254,9 @@ class DefaultCupertinoCroppableImageControllerState
     );
   }
 
-  void _pushUndoNode(CupertinoCroppableImageController? controller, {CroppableImageData? data}) {
+  void _pushUndoNode(
+    CupertinoCroppableImageController? controller,
+  ) {
     if (_controller == null) return;
 
     //
@@ -261,8 +268,8 @@ class DefaultCupertinoCroppableImageControllerState
 
     _undoStack.add(
       CropUndoNode(
-        data: data?.copyWith() ?? _controller!.data.copyWith(),
-        shape: _currentShape,
+        data: controller?.data.copyWith() ?? _controller!.data.copyWith(),
+        shape: controller!.data.copyWith().cropShape.type,
       ),
     );
 
@@ -361,7 +368,7 @@ class DefaultCupertinoCroppableImageControllerState
 
   @override
   Widget build(BuildContext context) {
-    log("----dddd ${_undoStack.length}");
+    log("----undolength ${_undoStack.length}");
     if (_controller == null) {
       return const SizedBox.shrink();
     }
