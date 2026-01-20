@@ -379,13 +379,14 @@ class DefaultCupertinoCroppableImageControllerState
 
   void defaultSetter(CupertinoCroppableImageController? val) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      callDefault();
+      callDefault(isFirstTime: true);
     });
   }
 
-  callDefault() {
+  callDefault({bool isFirstTime=false}) {
+
     if (widget.fixedAspect != null) {
-      Future.delayed(const Duration(milliseconds: 200)).then((_) {
+      Future.delayed( Duration(milliseconds:isFirstTime?600: 200)).then((_) {
         // applyAspectRatioCentered(snapped);
         // applyAspectRatioCentered(snapped);
         final snapped = snapFromAllowedAspectRatios(
@@ -393,7 +394,7 @@ class DefaultCupertinoCroppableImageControllerState
           widget.allowedAspectRatios ?? [],
         );
         (_controller as AspectRatioMixin).currentAspectRatio = snapped;
-        Future.delayed(const Duration(milliseconds: 200)).then((_) {
+        Future.delayed( Duration(milliseconds:isFirstTime?600: 200)).then((_) {
           _undoStack.removeLast();
           _updateUndoRedoNotifier();
           _makeItCenter();
